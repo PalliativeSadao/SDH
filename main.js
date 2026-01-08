@@ -91,7 +91,7 @@ function handleFormSubmit(e) {
           pr:document.getElementById('vs_pr').value, 
           rr:document.getElementById('vs_rr').value, 
           o2:document.getElementById('vs_o2').value, 
-          bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) // Force 1 decimal
+          bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1)
       }, 
       esas:esas 
     },
@@ -181,11 +181,8 @@ function resetForm() {
   document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
   document.querySelector('input[name="pt_status"][value="Alive"]').checked = true;
   document.getElementById('disease_type').value = '';
-  
-  // Reset ESAS UI
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; });
   renderESAS(); 
-
   updateDiseaseUI();
 }
 
@@ -218,23 +215,31 @@ function renderHistoryItems(list) {
 }
 
 function showPage(pid) { 
-  document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); document.getElementById('page-'+pid).classList.remove('d-none'); document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); 
+  document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); 
+  document.getElementById('page-'+pid).classList.remove('d-none'); 
+  document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); 
+  
+  // Set active menu item based on page id
+  const linkMap = {'menu':'','register':'nav-reg','active':'','appoint':'','summary':''};
+  // Loop find link containing onclick showPage(pid)
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(l => {
+     if(l.getAttribute('onclick').includes(`'${pid}'`)) l.classList.add('active');
+  });
+
   if(pid==='appoint') initSlider(); 
-  if(pid==='register') document.getElementById('nav-reg').classList.add('active');
 }
 function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดปัจจุบัน';} }
 function getLocation() { if(navigator.geolocation){ Swal.fire({title:'กำลังระบุพิกัด...',didOpen:()=>Swal.showLoading()}); navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('lat').value=p.coords.latitude; document.getElementById('long').value=p.coords.longitude; updateMapBtnStatus(true); Swal.fire({icon:'success', title:'บันทึกพิกัดสำเร็จ', text:`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`, timer:1500, showConfirmButton:false}); }, err=>{ Swal.fire('Error','ไม่สามารถระบุตำแหน่งได้','error'); }); } else { Swal.fire('Error','Browser ไม่รองรับ GPS','error'); } }
 function addPhoneField(v='',l=''){ const d=document.createElement('div'); d.className='input-group mb-2'; d.innerHTML=`<input type="tel" class="form-control phone-input" placeholder="เบอร์โทร" value="${v}" maxlength="10"><select class="form-select" style="max-width:130px"><option value="">ความสัมพันธ์</option><option value="คนไข้" ${l==='คนไข้'?'selected':''}>คนไข้</option><option value="คู่สมรส" ${l==='คู่สมรส'?'selected':''}>คู่สมรส</option><option value="พ่อ" ${l==='พ่อ'?'selected':''}>พ่อ</option><option value="แม่" ${l==='แม่'?'selected':''}>แม่</option><option value="ลูก" ${l==='ลูก'?'selected':''}>ลูก</option><option value="ผู้ดูแล" ${l==='ผู้ดูแล'?'selected':''}>ผู้ดูแล</option><option value="ญาติ" ${l==='ญาติ'?'selected':''}>ญาติ</option></select><button class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>`; document.getElementById('phoneContainer').appendChild(d); }
 
-// *** NEW LAB LOGIC ***
+// *** LAB LOGIC ***
 function validateLabInput(el, type) {
   if (el.value === '') return;
-  // step="0.01" ใน HTML จัดการส่วนใหญ่แล้ว ฟังก์ชันนี้อาจไว้เช็ค Max value
   const val = parseFloat(el.value);
   if (type === 'cr' && val >= 100) el.value = el.value.slice(0, -1);
   if (type === 'egfr' && val >= 1000) el.value = el.value.slice(0, -1);
 }
-
 function formatLabFinal(el) {
   if (el.value === '') return;
   const val = parseFloat(el.value);
@@ -248,7 +253,52 @@ function addMed(){const n=document.getElementById('med_name').value,d=document.g
 function renderMedsList(){document.getElementById('medList').innerHTML=currentMeds.map((m,i)=>`<li class="list-group-item d-flex justify-content-between p-2 small">${m.name} (${m.dose}) <button class="btn btn-sm btn-outline-danger border-0" onclick="currentMeds.splice(${i},1);renderMedsList()"><i class="fas fa-times"></i></button></li>`).join('');}
 function renderActivePatients(){const t=document.getElementById('searchActive').value.toLowerCase();const f=allPatients.filter(p=>p.status==='Alive'&&(p.name.includes(t)||p.hn.includes(t)));document.getElementById('activePatientList').innerHTML=f.length?f.map(p=>{const c=getTypeClass(p.type_admit);const icon=p.gender==='Male'?'<i class="fas fa-mars text-primary"></i>':(p.gender==='Female'?'<i class="fas fa-venus text-danger"></i>':'');return`<div class="col-md-4 col-sm-6"><div class="card p-3 shadow-sm patient-card ${c}" onclick="openEditRegistration('${p.hn}')"><div class="d-flex justify-content-between"><div><h5 class="mb-1 fw-bold text-dark">${icon} ${p.name}</h5><p class="mb-0 text-secondary small">HN: ${p.hn}</p></div><span class="status-badge">${p.type_admit}</span></div><hr class="my-2" style="opacity:0.1"><small class="text-muted"><i class="far fa-calendar-check"></i> นัด: ${formatDateTH(p.next_visit_date)}</small></div></div>`;}).join(''):'<div class="col-12 text-center text-muted mt-5">ไม่พบข้อมูล</div>';}
 function renderApptList(s){const l=document.getElementById('appointList');const p=allPatients.filter(x=>x.next_visit_date&&x.next_visit_date.substring(0,10)===s);l.innerHTML=p.length?p.map(x=>{const c=getTypeClass(x.visit_type);const icon=x.gender==='Male'?'<i class="fas fa-mars text-primary"></i>':(x.gender==='Female'?'<i class="fas fa-venus text-danger"></i>':'');return`<div class="col-md-6"><div class="card p-3 shadow-sm ${c}" onclick="openEditRegistration('${x.hn}')" style="cursor:pointer; border-left-width:8px;"><div class="d-flex justify-content-between"><h5 class="mb-1 fw-bold">${icon} ${x.name}</h5><span class="badge bg-white text-dark border">${x.visit_type}</span></div><small class="text-secondary">HN: ${x.hn}</small></div></div>`;}).join(''):'<div class="col-12 text-center text-muted py-5">ไม่มีนัด</div>';}
-function renderSummary(){document.getElementById('summaryContainer').innerHTML=`<div class="col-6 col-md-3"><div class="card p-3 bg-primary text-white"><h3>${allPatients.length}</h3>Total</div></div><div class="col-6 col-md-3"><div class="card p-3 bg-success text-white"><h3>${allPatients.filter(p=>p.status==='Alive').length}</h3>Active</div></div><div class="col-6 col-md-3"><div class="card p-3 bg-dark text-white"><h3>${allPatients.filter(p=>p.status!=='Alive').length}</h3>Death</div></div>`;}
+
+// *** ปรับปรุงฟังก์ชัน Summary ให้กดดู Death ได้ ***
+function renderSummary(){
+  document.getElementById('summaryContainer').innerHTML=`
+    <div class="col-6 col-md-3"><div class="card p-3 bg-primary text-white"><h3>${allPatients.length}</h3>Total</div></div>
+    <div class="col-6 col-md-3"><div class="card p-3 bg-success text-white"><h3>${allPatients.filter(p=>p.status==='Alive').length}</h3>Active</div></div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 bg-dark text-white" style="cursor:pointer;" onclick="showPage('death'); renderDeceasedPatients();">
+            <h3>${allPatients.filter(p=>p.status!=='Alive').length}</h3>
+            Death (คลิกเพื่อดู)
+        </div>
+    </div>
+  `;
+}
+
+// *** ฟังก์ชันแสดงรายชื่อผู้เสียชีวิต (เพิ่มใหม่) ***
+function renderDeceasedPatients() {
+  const list = allPatients.filter(p => p.status !== 'Alive');
+  const container = document.getElementById('deathPatientList');
+  
+  if (list.length === 0) {
+    container.innerHTML = '<div class="col-12 text-center text-muted mt-5">ไม่มีข้อมูลผู้เสียชีวิต</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(p => {
+    const icon = p.gender === 'Male' ? '<i class="fas fa-mars"></i>' : (p.gender === 'Female' ? '<i class="fas fa-venus"></i>' : '');
+    const dischargeDate = p.discharge_date ? formatDateTH(p.discharge_date) : '-';
+    return `
+      <div class="col-md-4 col-sm-6">
+        <div class="card p-3 shadow-sm border-start border-5 border-secondary bg-light" onclick="openEditRegistration('${p.hn}')" style="cursor:pointer;">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h5 class="mb-1 fw-bold text-secondary">${icon} ${p.name}</h5>
+              <p class="mb-0 text-secondary small">HN: ${p.hn}</p>
+            </div>
+            <span class="badge bg-danger">Death</span>
+          </div>
+          <hr class="my-2" style="opacity:0.1">
+          <small class="text-muted"><i class="fas fa-calendar-times"></i> วันที่เสียชีวิต: ${dischargeDate}</small>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 function initSlider(){const c=document.getElementById('dateSlider');c.innerHTML='';const d=new Date();const th=['อา','จ','อ','พ','พฤ','ศ','ส'];for(let i=0;i<14;i++){const t=new Date(d);t.setDate(d.getDate()+i);const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),day=String(t.getDate()).padStart(2,'0'),s=`${y}-${m}-${day}`;c.innerHTML+=`<div class="date-card ${i===0?'active':''}" onclick="document.querySelectorAll('.date-card').forEach(e=>e.classList.remove('active'));this.classList.add('active');renderApptList('${s}')"><div class="date-day">${th[t.getDay()]}</div><div class="date-num">${t.getDate()}</div></div>`;}const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');renderApptList(`${y}-${m}-${day}`);}
 
 function renderDiseaseType() {
@@ -256,20 +306,15 @@ function renderDiseaseType() {
   sel.innerHTML = '<option value="">-- เลือกประเภท --</option>';
   Object.keys(diseaseData).forEach(k => sel.add(new Option(k, k)));
 }
-
 function updateDiseaseUI() {
   const type = document.getElementById('disease_type').value;
   const groupSel = document.getElementById('disease_group');
   const subSel = document.getElementById('disease_sub');
   const otherInput = document.getElementById('disease_other_container');
-  
   groupSel.innerHTML = '<option value="">-- เลือกกลุ่ม/ตำแหน่ง --</option>';
   subSel.innerHTML = '<option value="">-- เลือกโรค/การแพร่กระจาย --</option>';
-  subSel.parentElement.classList.add('d-none');
-  otherInput.classList.add('d-none');
-
+  subSel.parentElement.classList.add('d-none'); otherInput.classList.add('d-none');
   if (!type) return;
-
   if (type === 'Non-Cancer') {
     document.getElementById('disease_group_label').innerText = 'กลุ่มโรค';
     Object.keys(diseaseData['Non-Cancer']).forEach(k => groupSel.add(new Option(k, k)));
@@ -281,134 +326,77 @@ function updateDiseaseUI() {
     diseaseData['Cancer']['Metastasis'].forEach(k => subSel.add(new Option(k, k)));
   }
 }
-
 function updateDiseaseSub() {
   const type = document.getElementById('disease_type').value;
   const group = document.getElementById('disease_group').value;
   const subSel = document.getElementById('disease_sub');
   const otherInput = document.getElementById('disease_other_container');
-
   if (type === 'Non-Cancer') {
     const subOptions = diseaseData['Non-Cancer'][group];
     if (subOptions && subOptions.length > 0) {
-      subSel.parentElement.classList.remove('d-none');
-      subSel.innerHTML = '<option value="">-- เลือกโรค --</option>';
+      subSel.parentElement.classList.remove('d-none'); subSel.innerHTML = '<option value="">-- เลือกโรค --</option>';
       document.getElementById('disease_sub_label').innerText = 'ระบุโรค';
-      subOptions.forEach(k => subSel.add(new Option(k, k)));
-      otherInput.classList.add('d-none');
+      subOptions.forEach(k => subSel.add(new Option(k, k))); otherInput.classList.add('d-none');
     } else {
-      subSel.parentElement.classList.add('d-none');
-      otherInput.classList.remove('d-none');
-      document.getElementById('disease_specific').focus();
+      subSel.parentElement.classList.add('d-none'); otherInput.classList.remove('d-none'); document.getElementById('disease_specific').focus();
     }
   }
 }
-
 function checkDiseaseOther() {
   const sub = document.getElementById('disease_sub').value;
   const otherInput = document.getElementById('disease_other_container');
-  if (sub.includes('ระบุ')) {
-    otherInput.classList.remove('d-none');
-    document.getElementById('disease_specific').focus();
-  } else {
-    otherInput.classList.add('d-none');
-  }
+  if (sub.includes('ระบุ')) { otherInput.classList.remove('d-none'); document.getElementById('disease_specific').focus(); } else { otherInput.classList.add('d-none'); }
 }
-
 function addDisease() {
   const type = document.getElementById('disease_type').value;
   const group = document.getElementById('disease_group').value;
   const sub = document.getElementById('disease_sub').value;
   const other = document.getElementById('disease_specific').value;
-
   if (!type || !group) return;
-
   let txt = '';
   if (type === 'Non-Cancer') {
     if (!document.getElementById('disease_sub').parentElement.classList.contains('d-none')) {
-       if (!sub) return;
-       txt = `${group}: ${sub}`;
-       if (sub.includes('ระบุ') && other) txt += ` (${other})`;
-    } else {
-       txt = `${group}`;
-       if (other) txt += ` (${other})`;
-    }
+       if (!sub) return; txt = `${group}: ${sub}`; if (sub.includes('ระบุ') && other) txt += ` (${other})`;
+    } else { txt = `${group}`; if (other) txt += ` (${other})`; }
   } else { 
-    if (!sub) return;
-    txt = `CA ${group}`;
-    if (sub !== 'None') {
-       txt += ` (Meta: ${sub}`;
-       if (sub.includes('ระบุ') && other) txt += ` - ${other}`;
-       txt += `)`;
-    }
+    if (!sub) return; txt = `CA ${group}`; if (sub !== 'None') { txt += ` (Meta: ${sub}`; if (sub.includes('ระบุ') && other) txt += ` - ${other}`; txt += `)`; }
   }
-
-  currentDiseases.push(txt);
-  renderDiseaseBadges();
-  document.getElementById('disease_group').value = '';
-  document.getElementById('disease_sub').value = '';
-  document.getElementById('disease_specific').value = '';
-  document.getElementById('disease_sub').parentElement.classList.add('d-none');
-  document.getElementById('disease_other_container').classList.add('d-none');
+  currentDiseases.push(txt); renderDiseaseBadges();
+  document.getElementById('disease_group').value = ''; document.getElementById('disease_sub').value = ''; document.getElementById('disease_specific').value = ''; document.getElementById('disease_sub').parentElement.classList.add('d-none'); document.getElementById('disease_other_container').classList.add('d-none');
 }
-
 function renderDiseaseBadges(){document.getElementById('diseaseList').innerHTML=currentDiseases.map((d,i)=>`<span class="badge bg-secondary m-1 text-wrap text-start" style="line-height:1.4;">${d} <i class="fas fa-times ms-2" style="cursor:pointer;" onclick="currentDiseases.splice(${i},1);renderDiseaseBadges()"></i></span>`).join('');}
 
-// --- NEW ESAS RENDER FUNCTIONS ---
+// --- ESAS RENDER FUNCTIONS ---
 function renderESAS() {
   const container = document.getElementById('esasContainer');
-  container.className = 'row g-3'; 
-  container.innerHTML = '';
-
+  container.className = 'row g-3'; container.innerHTML = '';
   esasTopics.forEach((topic, index) => {
-    const col = document.createElement('div');
-    col.className = 'col-md-6 col-12';
+    const col = document.createElement('div'); col.className = 'col-md-6 col-12';
     col.innerHTML = `
       <div class="esas-card p-3 shadow-sm h-100">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>
-            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">${topic}</h6>
-            <small class="text-muted" id="text-mood-${index}">ไม่มีอาการ</small>
-          </div>
+          <div><h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">${topic}</h6><small class="text-muted" id="text-mood-${index}">ไม่มีอาการ</small></div>
           <div class="score-badge-box bg-success shadow-sm" id="badge-${index}">0</div>
         </div>
-        <div class="d-flex align-items-center">
-            <span class="small text-muted me-2">0</span>
-            <input type="range" class="form-range esas-range" min="0" max="10" value="0" 
-              data-topic="${topic}" 
-              oninput="updateESASScore(this, ${index})">
-            <span class="small text-muted ms-2">10</span>
-        </div>
-      </div>
-    `;
+        <div class="d-flex align-items-center"><span class="small text-muted me-2">0</span><input type="range" class="form-range esas-range" min="0" max="10" value="0" data-topic="${topic}" oninput="updateESASScore(this, ${index})"><span class="small text-muted ms-2">10</span></div>
+      </div>`;
     container.appendChild(col);
   });
 }
-
 function updateESASScore(el, index) {
   const val = parseInt(el.value);
   const badge = document.getElementById(`badge-${index}`);
   const textMood = document.getElementById(`text-mood-${index}`);
-  
   badge.innerText = val;
-
   if (val === 0) {
-    badge.className = 'score-badge-box bg-success shadow-sm'; 
-    textMood.innerText = 'ไม่มีอาการ 😃'; textMood.className = 'text-success small';
+    badge.className = 'score-badge-box bg-success shadow-sm'; textMood.innerText = 'ไม่มีอาการ 😃'; textMood.className = 'text-success small';
   } else if (val >= 1 && val <= 3) {
-    badge.className = 'score-badge-box bg-success shadow-sm'; 
-    badge.style.backgroundColor = '#2ECC71';
-    textMood.innerText = 'เล็กน้อย 🙂'; textMood.className = 'text-success small';
+    badge.className = 'score-badge-box bg-success shadow-sm'; badge.style.backgroundColor = '#2ECC71'; textMood.innerText = 'เล็กน้อย 🙂'; textMood.className = 'text-success small';
   } else if (val >= 4 && val <= 6) {
-    badge.className = 'score-badge-box shadow-sm'; 
-    badge.style.backgroundColor = '#F1C40F'; badge.style.color = '#333';
-    textMood.innerText = 'ปานกลาง 😐'; textMood.className = 'text-warning small fw-bold';
+    badge.className = 'score-badge-box shadow-sm'; badge.style.backgroundColor = '#F1C40F'; badge.style.color = '#333'; textMood.innerText = 'ปานกลาง 😐'; textMood.className = 'text-warning small fw-bold';
   } else if (val >= 7 && val <= 9) {
-    badge.className = 'score-badge-box text-white shadow-sm';
-    badge.style.backgroundColor = '#E67E22';
-    textMood.innerText = 'รุนแรง 😣'; textMood.className = 'text-danger small fw-bold';
+    badge.className = 'score-badge-box text-white shadow-sm'; badge.style.backgroundColor = '#E67E22'; textMood.innerText = 'รุนแรง 😣'; textMood.className = 'text-danger small fw-bold';
   } else {
-    badge.className = 'score-badge-box bg-danger text-white shadow-sm';
-    textMood.innerText = 'รุนแรงที่สุด 😫'; textMood.className = 'text-danger small fw-bold';
+    badge.className = 'score-badge-box bg-danger text-white shadow-sm'; textMood.innerText = 'รุนแรงที่สุด 😫'; textMood.className = 'text-danger small fw-bold';
   }
 }
