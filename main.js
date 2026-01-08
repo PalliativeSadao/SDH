@@ -85,7 +85,7 @@ function handleFormSubmit(e) {
     diseases: currentDiseases, meds: currentMeds,
     exam: { 
       pps:document.getElementById('pps_score').value, gcs:document.getElementById('gcs_score').value, 
-      vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt:document.getElementById('vs_bt').value }, 
+      vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt: parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) }, 
       esas:esas 
     },
     plan: document.getElementById('nursing_plan').value, acp: acp,
