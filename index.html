@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" href="https://img2.pic.in.th/logo48f9ac4bb514dfca.png">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
@@ -20,40 +20,40 @@
 
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#" onclick="showPage('menu')">
-        <img src="https://img2.pic.in.th/pic/--PNG-logoname.png" alt="Logo" height="45" class="me-2">
+      <a class="navbar-brand ms-2" href="#" onclick="showPage('menu')">
+        <img src="https://img2.pic.in.th/pic/--PNG-logoname.png" alt="Logo" height="42" class="me-2">
         <div class="d-flex flex-column">
-           <span style="line-height:1.1">Palliative Care</span>
+           <span style="line-height:1.1; font-size:1.1rem;">Palliative Care</span>
            <span style="font-size:0.7rem; color:#666; font-weight:400;">รพ.สะเดา จ.สงขลา</span>
         </div>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-center">
+        <ul class="navbar-nav ms-auto align-items-center gap-2 mt-2 mt-lg-0">
           <li class="nav-item d-none" id="installContainer">
-            <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold me-2 my-1" onclick="installPWA()">
-              <i class="fas fa-download"></i> ติดตั้งแอป
+            <button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()">
+              <i class="fas fa-download me-1"></i> ติดตั้งแอป
             </button>
           </li>
           
-          <li class="nav-item"><a class="nav-link" onclick="showPage('menu')"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-          <li class="nav-item"><a class="nav-link" id="nav-reg" onclick="openNewRegistration()"><i class="fas fa-user-plus"></i> ลงทะเบียนรายใหม่</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="showPage('active')"><i class="fas fa-procedures"></i> คงพยาบาล</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="showPage('appoint')"><i class="fas fa-calendar-alt"></i> นัดหมาย</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="showPage('summary')"><i class="fas fa-chart-pie"></i> สรุป</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="showPage('menu')"><i class="fas fa-home me-1"></i> หน้าหลัก</a></li>
+          <li class="nav-item"><a class="nav-link" id="nav-reg" onclick="openNewRegistration()"><i class="fas fa-user-plus me-1"></i> ลงทะเบียน</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="showPage('active')"><i class="fas fa-procedures me-1"></i> คงพยาบาล</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="showPage('appoint')"><i class="fas fa-calendar-alt me-1"></i> นัดหมาย</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="showPage('summary')"><i class="fas fa-chart-pie me-1"></i> สรุป</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <div class="container main-content" style="min-height: 80vh;">
+  <div class="container main-content" style="min-height: 85vh;">
 
     <div id="page-menu" class="page-section">
        <div class="text-center py-5">
-         <img src="https://img2.pic.in.th/logo48f9ac4bb514dfca.png" height="100" class="mb-3 rounded-4 shadow-sm">
-         <h2 class="fw-bold text-success">ระบบบันทึก Palliative Care</h2>
+         <img src="https://img2.pic.in.th/logo48f9ac4bb514dfca.png" height="110" class="mb-4 rounded-4 shadow-sm animate-fade-in">
+         <h2 class="fw-bold text-success mb-2">ระบบบันทึก Palliative Care</h2>
          <p class="text-muted">โรงพยาบาลสะเดา อำเภอสะเดา จังหวัดสงขลา</p>
        </div>
        <div class="row g-4 justify-content-center">
@@ -166,7 +166,17 @@
 
     <div id="page-active" class="page-section d-none"><h4 class="mt-4 mb-3 text-success">ผู้ป่วยคงพยาบาล</h4><input type="text" class="form-control mb-3 shadow-sm" id="searchActive" placeholder="ค้นหา..." onkeyup="renderActivePatients()"><div class="row g-3" id="activePatientList"></div></div>
     <div id="page-appoint" class="page-section d-none"><h4 class="mt-4 mb-3 text-success">ตารางนัดหมาย</h4><div class="date-slider-container mb-3 shadow-sm"><div class="d-flex overflow-auto py-2" id="dateSlider"></div></div><div class="row g-3" id="appointList"></div></div>
+    
     <div id="page-summary" class="page-section d-none"><h4 class="mt-4 mb-3 text-success">สรุปรายงาน</h4><div class="row g-3" id="summaryContainer"></div></div>
+    
+    <div id="page-death" class="page-section d-none">
+       <div class="d-flex align-items-center mt-4 mb-3">
+          <button class="btn btn-outline-secondary me-3 rounded-circle shadow-sm" onclick="showPage('summary')"><i class="fas fa-arrow-left"></i></button>
+          <h4 class="text-danger mb-0">ผู้ป่วยเสียชีวิต (Deceased)</h4>
+       </div>
+       <div class="row g-3" id="deathPatientList"></div>
+    </div>
+
   </div>
 
   <footer class="app-footer"><div class="container"><p class="mb-1 fw-bold">โรงพยาบาลสะเดา อำเภอสะเดา จังหวัดสงขลา</p><p class="mb-0">พัฒนาโดย: <span class="credit-name">พท.ทศพร คงสุขนิรันดร์</span> ตำแหน่ง แพทย์แผนไทย</p></div></footer>
