@@ -1,3 +1,4 @@
+// *** อย่าลืม Deploy Apps Script ใหม่ แล้วเอา URL มาใส่ตรงนี้ ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQIbm1vl8AmYxGe5qBV0erTS15WpLiO2VxEUt9OBqiInmsMH-pEW7GwVkNZy_plFVu/exec';
 
 const diseaseData = {
@@ -85,7 +86,13 @@ function handleFormSubmit(e) {
     diseases: currentDiseases, meds: currentMeds,
     exam: { 
       pps:document.getElementById('pps_score').value, gcs:document.getElementById('gcs_score').value, 
-      vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt: parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) }, 
+      vitals:{ 
+          bp:document.getElementById('vs_bp').value, 
+          pr:document.getElementById('vs_pr').value, 
+          rr:document.getElementById('vs_rr').value, 
+          o2:document.getElementById('vs_o2').value, 
+          bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) // Force 1 decimal
+      }, 
       esas:esas 
     },
     plan: document.getElementById('nursing_plan').value, acp: acp,
@@ -174,6 +181,11 @@ function resetForm() {
   document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
   document.querySelector('input[name="pt_status"][value="Alive"]').checked = true;
   document.getElementById('disease_type').value = '';
+  
+  // Reset ESAS UI
+  document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; });
+  renderESAS(); 
+
   updateDiseaseUI();
 }
 
@@ -200,9 +212,8 @@ function renderHistoryItems(list) {
      let labHtml = ''; if(h.lab_cr||h.lab_egfr) { const ld = h.lab_date ? `<br><span class="text-muted small">วันที่ Lab: ${formatDateTH(h.lab_date)}</span>` : ''; labHtml = `<div class="alert alert-light border p-2 mb-2 small"><i class="fas fa-flask text-danger"></i> <b>Lab:</b> Cr:${h.lab_cr||'-'} eGFR:${h.lab_egfr||'-'} ${ld}</div>`; }
      let medHtml = (h.meds&&h.meds.length) ? '<ul class="mb-0 ps-3 small text-muted">'+h.meds.map(m=>`<li>${m.name}</li>`).join('')+'</ul>' : '-';
      let esasHtml = ''; if(h.esas) Object.entries(h.esas).forEach(([k,v])=>{if(v>0)esasHtml+=`<span class="badge bg-warning text-dark me-1 border">${k}:${v}</span>`;});
-     let acpHtml = ''; if(h.acp && (Object.keys(h.acp).length > 2 || h.acp.maker)) { acpHtml = `<div class="mt-2 small border-top pt-2 bg-light p-2 rounded"><i class="fas fa-file-contract"></i> <b>ACP:</b> `; if(h.acp.maker) acpHtml += `<div>ผู้ทำ: ${h.acp.maker} (${formatDateTH(h.acp.date)})</div>`; Object.entries(h.acp).forEach(([k,v])=>{ if(k!=='maker' && k!=='date' && v!=='Undecided') acpHtml += `<span class="me-2 d-inline-block">• ${k}: <u>${v}</u></span>`; }); acpHtml += `</div>`; }
      const v = h.vitals||{};
-     return `<div class="card mb-3 shadow-sm history-card"><div class="card-header bg-white d-flex justify-content-between"><span class="history-date">${d}</span><span class="badge bg-light text-dark border">PPS: ${ppsDisplay}</span></div><div class="card-body">${labHtml}<div class="mb-2">${esasHtml}</div><div class="row"><div class="col-6 border-end"><p class="mb-1 small"><b>Vitals:</b> BP:${v.bp||'-'} P:${v.pr||'-'} RR:${v.rr||'-'} O2:${v.o2||'-'}</p><p class="mb-1 small"><b>GCS:</b> ${h.gcs||'-'}</p><p class="mb-1 small"><b>Plan:</b> ${h.plan||'-'}</p></div><div class="col-6"><p class="mb-1 small fw-bold text-success">ยา:</p>${medHtml}</div><div class="col-12">${acpHtml}</div></div></div></div>`;
+     return `<div class="card mb-3 shadow-sm history-card"><div class="card-header bg-white d-flex justify-content-between"><span class="history-date">${d}</span><span class="badge bg-light text-dark border">PPS: ${ppsDisplay}</span></div><div class="card-body">${labHtml}<div class="mb-2">${esasHtml}</div><div class="row"><div class="col-6 border-end"><p class="mb-1 small"><b>Vitals:</b> BP:${v.bp||'-'} P:${v.pr||'-'} RR:${v.rr||'-'} O2:${v.o2||'-'} T:${v.bt||'-'}</p><p class="mb-1 small"><b>GCS:</b> ${h.gcs||'-'}</p><p class="mb-1 small"><b>Plan:</b> ${h.plan||'-'}</p></div><div class="col-6"><p class="mb-1 small fw-bold text-success">ยา:</p>${medHtml}</div></div></div></div>`;
   }).join('');
 }
 
@@ -218,6 +229,7 @@ function addPhoneField(v='',l=''){ const d=document.createElement('div'); d.clas
 // *** NEW LAB LOGIC ***
 function validateLabInput(el, type) {
   if (el.value === '') return;
+  // step="0.01" ใน HTML จัดการส่วนใหญ่แล้ว ฟังก์ชันนี้อาจไว้เช็ค Max value
   const val = parseFloat(el.value);
   if (type === 'cr' && val >= 100) el.value = el.value.slice(0, -1);
   if (type === 'egfr' && val >= 1000) el.value = el.value.slice(0, -1);
@@ -230,7 +242,6 @@ function formatLabFinal(el) {
 }
 
 function renderPPS(){const s=document.getElementById('pps_score');s.innerHTML='';s.add(new Option('ไม่ระบุ',''));for(let i=0;i<=100;i+=10)s.add(new Option(i+'%',i));}
-function renderESAS(){const c=document.getElementById('esasContainer');esasTopics.forEach((t,i)=>c.innerHTML+=`<div class="mb-2"><label class="d-flex justify-content-between small">${t} <span id="v${i}">0</span></label><input type="range" class="form-range esas-range" min="0" max="10" value="0" oninput="document.getElementById('v${i}').innerText=this.value" data-topic="${t}"></div>`);}
 function renderACP(){const b=document.getElementById('acpTableBody');acpTopics.forEach(t=>b.innerHTML+=`<tr><td>${t}</td><td class="text-center"><input type="radio" name="acp_${t}" value="Want"></td><td class="text-center"><input type="radio" name="acp_${t}" value="Dont"></td><td class="text-center"><input type="radio" name="acp_${t}" value="Undecided" checked></td></tr>`);}
 function renderMedOptions(){const s=document.getElementById('med_name');s.add(new Option('--Drug--',''));medList.forEach(m=>s.add(new Option(m,m)));}
 function addMed(){const n=document.getElementById('med_name').value,d=document.getElementById('med_dose').value;if(n){currentMeds.push({name:n,dose:d});renderMedsList();document.getElementById('med_dose').value='';}}
@@ -342,3 +353,62 @@ function addDisease() {
 }
 
 function renderDiseaseBadges(){document.getElementById('diseaseList').innerHTML=currentDiseases.map((d,i)=>`<span class="badge bg-secondary m-1 text-wrap text-start" style="line-height:1.4;">${d} <i class="fas fa-times ms-2" style="cursor:pointer;" onclick="currentDiseases.splice(${i},1);renderDiseaseBadges()"></i></span>`).join('');}
+
+// --- NEW ESAS RENDER FUNCTIONS ---
+function renderESAS() {
+  const container = document.getElementById('esasContainer');
+  container.className = 'row g-3'; 
+  container.innerHTML = '';
+
+  esasTopics.forEach((topic, index) => {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-12';
+    col.innerHTML = `
+      <div class="esas-card p-3 shadow-sm h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">${topic}</h6>
+            <small class="text-muted" id="text-mood-${index}">ไม่มีอาการ</small>
+          </div>
+          <div class="score-badge-box bg-success shadow-sm" id="badge-${index}">0</div>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="small text-muted me-2">0</span>
+            <input type="range" class="form-range esas-range" min="0" max="10" value="0" 
+              data-topic="${topic}" 
+              oninput="updateESASScore(this, ${index})">
+            <span class="small text-muted ms-2">10</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(col);
+  });
+}
+
+function updateESASScore(el, index) {
+  const val = parseInt(el.value);
+  const badge = document.getElementById(`badge-${index}`);
+  const textMood = document.getElementById(`text-mood-${index}`);
+  
+  badge.innerText = val;
+
+  if (val === 0) {
+    badge.className = 'score-badge-box bg-success shadow-sm'; 
+    textMood.innerText = 'ไม่มีอาการ 😃'; textMood.className = 'text-success small';
+  } else if (val >= 1 && val <= 3) {
+    badge.className = 'score-badge-box bg-success shadow-sm'; 
+    badge.style.backgroundColor = '#2ECC71';
+    textMood.innerText = 'เล็กน้อย 🙂'; textMood.className = 'text-success small';
+  } else if (val >= 4 && val <= 6) {
+    badge.className = 'score-badge-box shadow-sm'; 
+    badge.style.backgroundColor = '#F1C40F'; badge.style.color = '#333';
+    textMood.innerText = 'ปานกลาง 😐'; textMood.className = 'text-warning small fw-bold';
+  } else if (val >= 7 && val <= 9) {
+    badge.className = 'score-badge-box text-white shadow-sm';
+    badge.style.backgroundColor = '#E67E22';
+    textMood.innerText = 'รุนแรง 😣'; textMood.className = 'text-danger small fw-bold';
+  } else {
+    badge.className = 'score-badge-box bg-danger text-white shadow-sm';
+    textMood.innerText = 'รุนแรงที่สุด 😫'; textMood.className = 'text-danger small fw-bold';
+  }
+}
