@@ -1,123 +1,124 @@
 :root {
   --primary-color: #2E8B57;
   --secondary-color: #A9DFBF;
-  --bg-color: #F0F4F8; 
+  --bg-color: #F4F7F6; /* สีพื้นหลังโทนสะอาดตาแบบคลินิกทันสมัย */
   --text-dark: #2C3E50;
   --gradient-main: linear-gradient(135deg, #2E8B57 0%, #117A65 100%);
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 body {
   background-color: var(--bg-color);
   font-family: 'Kanit', sans-serif;
-  padding-top: 80px;
+  padding-top: 90px; /* เว้นที่ให้ Navbar ลอย */
   color: var(--text-dark);
 }
 
+/* --- MODERN NAVBAR --- */
 .navbar {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border-bottom: 3px solid #2E8B57;
+  background: rgba(255, 255, 255, 0.85); /* พื้นหลังโปร่งแสง */
+  backdrop-filter: blur(12px); /* เอฟเฟกต์กระจกเบลอ */
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(46, 139, 87, 0.08); /* เงาสีเขียวจางๆ */
+  border-bottom: 1px solid rgba(46, 139, 87, 0.1);
+  padding: 0.8rem 0;
+  transition: all 0.3s ease;
 }
-.navbar-brand { font-weight: 700; color: #145A32 !important; display: flex; align-items: center; }
-.nav-link.active {
-  color: var(--primary-color) !important;
+
+.navbar-brand {
   font-weight: 700;
-  background: #E8F5E9;
-  border-radius: 20px;
-  padding: 8px 15px !important;
-}
-
-/* Menu Buttons */
-.menu-btn {
-  border: none; border-radius: 20px; padding: 25px;
-  height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-  background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  transition: all 0.3s;
-  position: relative; overflow: hidden;
-}
-.menu-btn:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(46, 139, 87, 0.2); }
-.menu-btn::after { content:''; position: absolute; bottom:0; left:0; width:100%; height:4px; background: var(--gradient-main); }
-.menu-icon { font-size: 3rem; margin-bottom: 10px; background: -webkit-linear-gradient(#2E8B57, #1ABC9C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-/* Visit Type Cards */
-.card-opd { border-left: 5px solid #FFC107; background: linear-gradient(to right, #FFFDE7, #FFFFFF); }
-.card-home { border-left: 5px solid #2E8B57; background: linear-gradient(to right, #E8F5E9, #FFFFFF); }
-.card-telemed { border-left: 5px solid #3498DB; background: linear-gradient(to right, #EBF5FB, #FFFFFF); }
-.card-ipd { border-left: 5px solid #E74C3C; background: linear-gradient(to right, #FDEDEC, #FFFFFF); }
-
-.status-badge { padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; color: #555; background: rgba(255,255,255,0.8); border: 1px solid #ddd; }
-
-/* Form & Inputs */
-.card { border-radius: 20px; border:none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-.form-control, .form-select { border-radius: 12px; padding: 12px; border: 1px solid #CFD8DC; background: #FEFEFE; }
-.form-control:focus { border-color: #2E8B57; box-shadow: 0 0 0 0.2rem rgba(46,139,87,0.15); }
-
-.btn-primary-theme {
-  background: var(--gradient-main); color: white; border: none; border-radius: 50px; padding: 12px 30px; font-weight: 600; box-shadow: 0 4px 10px rgba(46,139,87,0.3);
-}
-.btn-primary-theme:hover { background: linear-gradient(135deg, #145A32, #0B3B20); transform: translateY(-2px); }
-
-/* Timeline & Slider */
-.history-card { border-left: 4px solid; border-image: var(--gradient-main) 1; }
-.date-slider-container { background: var(--gradient-main); border-radius: 20px; padding: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
-.date-card {
-  min-width: 70px; height: 85px; background: rgba(255,255,255,0.15); border-radius: 15px; margin-right: 10px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; cursor: pointer;
-}
-.date-card.active { background: white; color: #145A32; font-weight: bold; transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-
-/* Footer */
-.app-footer { margin-top: 50px; padding: 30px 0; text-align: center; color: #7F8C8D; background: white; border-top: 1px solid #EAEDED; }
-
-/* ------------------ NEW ESAS DESIGN ------------------ */
-.esas-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #f0f0f0;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.esas-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-}
-
-/* Custom Gradient Slider */
-.esas-range {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 8px;
-  border-radius: 5px;
-  background: linear-gradient(to right, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%);
-  outline: none;
-  margin-top: 10px;
-}
-.esas-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #fff;
-  border: 4px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  cursor: pointer;
-  transition: background .15s ease-in-out;
-}
-.esas-range::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-/* Score Badge */
-.score-badge-box {
-  width: 45px;
-  height: 45px;
-  border-radius: 12px;
+  color: #145A32 !important;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.2rem;
-  color: white;
-  transition: background-color 0.3s ease;
 }
+
+/* Nav Link Styling */
+.nav-link {
+  color: #555 !important;
+  font-weight: 500;
+  padding: 10px 18px !important;
+  border-radius: 50px; /* ทรงแคปซูล */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0 2px;
+  border: 1px solid transparent;
+}
+
+/* Hover Effect: ลอยขึ้น + สีพื้นจางๆ */
+.nav-link:hover {
+  background-color: rgba(46, 139, 87, 0.08);
+  color: #2E8B57 !important;
+  transform: translateY(-2px);
+}
+
+/* Active State: สีเข้ม + เงา Glow */
+.nav-link.active {
+  background: var(--gradient-main);
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(46, 139, 87, 0.35); /* เงาสีเขียวเรืองแสง */
+  transform: translateY(0);
+}
+.nav-link.active i {
+  color: white !important;
+}
+
+/* Install Button Animation */
+#installContainer button {
+  border: 2px solid #2E8B57;
+  color: #2E8B57;
+  background: transparent;
+  transition: all 0.3s;
+}
+#installContainer button:hover {
+  background: #2E8B57;
+  color: white;
+  box-shadow: 0 0 15px rgba(46, 139, 87, 0.4);
+}
+
+/* --- END NAVBAR --- */
+
+/* Menu Buttons (Page Menu) */
+.menu-btn {
+  border: none; border-radius: 24px; padding: 25px;
+  height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  background: white; box-shadow: var(--shadow-soft);
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.menu-btn:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(46, 139, 87, 0.15); }
+.menu-btn::after { content:''; position: absolute; bottom:0; left:0; width:100%; height:6px; background: var(--gradient-main); }
+.menu-icon { font-size: 3rem; margin-bottom: 12px; background: -webkit-linear-gradient(#2E8B57, #1ABC9C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Cards & Forms */
+.card { border-radius: 20px; border:none; box-shadow: var(--shadow-soft); }
+.status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+/* Visit Type Colors */
+.card-opd { border-left: 6px solid #FFC107; background: linear-gradient(to right, #FFFDE7, #FFFFFF); }
+.card-home { border-left: 6px solid #2E8B57; background: linear-gradient(to right, #E8F5E9, #FFFFFF); }
+.card-telemed { border-left: 6px solid #3498DB; background: linear-gradient(to right, #EBF5FB, #FFFFFF); }
+.card-ipd { border-left: 6px solid #E74C3C; background: linear-gradient(to right, #FDEDEC, #FFFFFF); }
+.card-death { border-left: 6px solid #555; background: #f8f9fa; opacity: 0.9; } /* เพิ่ม Death Style */
+
+/* Input Fields */
+.form-control, .form-select { border-radius: 12px; padding: 12px; border: 1px solid #E0E0E0; background: #fff; transition: all 0.2s; }
+.form-control:focus, .form-select:focus { border-color: #2E8B57; box-shadow: 0 0 0 4px rgba(46,139,87,0.1); }
+
+/* Buttons */
+.btn-primary-theme {
+  background: var(--gradient-main); color: white; border: none; border-radius: 50px; padding: 12px 30px; font-weight: 600; box-shadow: 0 5px 15px rgba(46,139,87,0.3); transition: all 0.3s;
+}
+.btn-primary-theme:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46,139,87,0.4); }
+
+/* Timeline Slider */
+.date-slider-container { background: var(--gradient-main); border-radius: 20px; padding: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+.date-card { min-width: 70px; height: 85px; background: rgba(255,255,255,0.15); border-radius: 16px; margin-right: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; cursor: pointer; transition: 0.2s; }
+.date-card.active { background: white; color: #145A32; font-weight: bold; transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+/* ESAS Modern Design */
+.esas-card { background: #ffffff; border-radius: 16px; border: 1px solid #f0f0f0; transition: transform 0.2s, box-shadow 0.2s; }
+.esas-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+.esas-range { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: linear-gradient(to right, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%); outline: none; margin-top: 10px; }
+.esas-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 4px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; transition: transform .15s; }
+.esas-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.score-badge-box { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; color: white; transition: background-color 0.3s ease; }
+
+.app-footer { margin-top: 50px; padding: 30px 0; text-align: center; color: #7F8C8D; background: white; border-top: 1px solid #EAEDED; }
