@@ -122,7 +122,8 @@
                     <span class="input-group-text">PR</span><input type="number" class="form-control" id="vs_pr">
                     <span class="input-group-text">RR</span><input type="number" class="form-control" id="vs_rr">
                     <span class="input-group-text">O2</span><input type="number" class="form-control" id="vs_o2">
-                    <span class="input-group-text">T</span><input type="number" class="form-control" id="vs_bt">
+                    <span class="input-group-text">T</span>
+                    <input type="number" class="form-control" id="vs_bt" step="0.1" placeholder="37.0" onchange="if(this.value) this.value=parseFloat(this.value).toFixed(1);">
                   </div>
                </div>
                <div class="col-12"><button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#esasBox"><i class="fas fa-sliders-h"></i> ประเมิน ESAS (Thai/Eng)</button><div class="collapse mt-2" id="esasBox"><div class="card card-body bg-light" id="esasContainer"></div></div></div>
