@@ -122,11 +122,17 @@
                     <span class="input-group-text">PR</span><input type="number" class="form-control" id="vs_pr">
                     <span class="input-group-text">RR</span><input type="number" class="form-control" id="vs_rr">
                     <span class="input-group-text">O2</span><input type="number" class="form-control" id="vs_o2">
-                    <span class="input-group-text">T</span>
-                    <input type="number" class="form-control" id="vs_bt" step="0.1" placeholder="37.0" onchange="if(this.value) this.value=parseFloat(this.value).toFixed(1);">
+                    <span class="input-group-text">T</span><input type="number" class="form-control" id="vs_bt" step="0.1" placeholder="37.0" onchange="if(this.value) this.value=parseFloat(this.value).toFixed(1);">
                   </div>
                </div>
-               <div class="col-12"><button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#esasBox"><i class="fas fa-sliders-h"></i> ประเมิน ESAS (Thai/Eng)</button><div class="collapse mt-2" id="esasBox"><div class="card card-body bg-light" id="esasContainer"></div></div></div>
+               <div class="col-12">
+                   <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#esasBox">
+                       <i class="fas fa-sliders-h"></i> ประเมิน ESAS (Thai/Eng)
+                   </button>
+                   <div class="collapse mt-2" id="esasBox">
+                       <div id="esasContainer" class="p-1"></div>
+                   </div>
+               </div>
             </div>
             
             <div class="mb-3"><label class="small">Nursing Plan</label><textarea class="form-control" id="nursing_plan" rows="2"></textarea></div>
@@ -140,16 +146,13 @@
                <div class="row g-3">
                  <div class="col-6"><label class="small">นัดถัดไป</label><input type="date" class="form-control" id="next_visit_date"></div>
                  <div class="col-6"><label class="small">ประเภทนัด</label><select class="form-select" id="next_visit_type"><option>OPD</option><option>HOME VISIT</option><option>TELEMED</option></select></div>
-                                <div class="col-12"><label class="small">Lab Values</label>
-                      <div class="input-group">
-                        <input type="date" class="form-control" id="lab_date">
-                        <span class="input-group-text">Cr</span>
-    <input type="number" step="0.01" class="form-control" id="lab_cr" placeholder="xx.xx" oninput="validateLabInput(this, 'cr')" onchange="formatLabFinal(this)">
-    
-    <span class="input-group-text">eGFR</span>
-    <input type="number" step="0.01" class="form-control" id="lab_egfr" placeholder="xxx.xx" oninput="validateLabInput(this, 'egfr')" onchange="formatLabFinal(this)">
-  </div>
-</div>
+                 <div class="col-12"><label class="small">Lab Values</label>
+                    <div class="input-group">
+                      <input type="date" class="form-control" id="lab_date">
+                      <span class="input-group-text">Cr</span>
+                      <input type="number" class="form-control" id="lab_cr" step="0.01" placeholder="xx.xx" oninput="validateLabInput(this, 'cr')" onchange="formatLabFinal(this)">
+                      <span class="input-group-text">eGFR</span>
+                      <input type="number" class="form-control" id="lab_egfr" step="0.01" placeholder="xxx.xx" oninput="validateLabInput(this, 'egfr')" onchange="formatLabFinal(this)">
                     </div>
                  </div>
                  <div class="col-12 pt-2 border-top"><div class="d-flex align-items-center"><div class="form-check me-3"><input class="form-check-input" type="radio" name="pt_status" value="Alive" checked> <label>Alive</label></div><div class="form-check me-3"><input class="form-check-input" type="radio" name="pt_status" value="Death"> <label class="text-danger">Death</label></div><input type="date" class="form-control form-control-sm w-auto" id="discharge_date"></div></div>
