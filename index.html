@@ -13,11 +13,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_green.css">
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,16 +29,10 @@
            <span style="font-size:0.7rem; color:#666; font-weight:400;">รพ.สะเดา จ.สงขลา</span>
         </div>
       </a>
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center gap-2 mt-2 mt-lg-0">
-          <li class="nav-item d-none" id="installContainer">
-            <button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()">
-              <i class="fas fa-download me-1"></i> ติดตั้งแอป
-            </button>
-          </li>
+          <li class="nav-item d-none" id="installContainer"><button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()"><i class="fas fa-download me-1"></i> ติดตั้งแอป</button></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('menu')"><i class="fas fa-home me-1"></i> หน้าหลัก</a></li>
           <li class="nav-item"><a class="nav-link" id="nav-reg" onclick="openNewRegistration()"><i class="fas fa-user-plus me-1"></i> ลงทะเบียน</a></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('active')"><i class="fas fa-procedures me-1"></i> คงพยาบาล</a></li>
@@ -94,8 +86,11 @@
                 <div class="col-12 col-md-6"><label class="small">ชื่อ - สกุล</label><input type="text" class="form-control" id="fullname" required></div>
                 
                 <div class="col-6 col-md-4">
-                   <label class="small">วันเกิด</label>
-                   <input type="text" class="form-control date-pk" id="dob" placeholder="เลือกวันเกิด">
+                   <label class="small">วันเกิด (วว/ดด/ปปปป)</label>
+                   <div class="input-group thai-datepicker">
+                      <input type="text" class="form-control" id="dob" placeholder="ระบุ พ.ศ." data-input onkeyup="formatDateInput(this); calculateAge();">
+                      <span class="input-group-text bg-white text-success" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                   </div>
                 </div>
                 <div class="col-6 col-md-2">
                    <label class="small">อายุ</label>
@@ -159,22 +154,43 @@
                   <div class="d-flex align-items-center mt-2 flex-wrap gap-2">
                      <div class="form-check"><input class="form-check-input" type="radio" name="lw_status" value="Made" id="lw_made"><label class="form-check-label" for="lw_made">ทำแล้ว</label></div>
                      <div class="form-check"><input class="form-check-input" type="radio" name="lw_status" value="NotMade" id="lw_not" checked><label class="form-check-label" for="lw_not">ยังไม่ทำ</label></div>
-                     <input type="text" class="form-control form-control-sm w-auto date-pk" id="lw_date" placeholder="ระบุวันที่">
+                     
+                     <div class="input-group thai-datepicker w-auto ms-2" style="max-width: 180px;">
+                        <input type="text" class="form-control form-control-sm" id="lw_date" placeholder="วันที่ทำ (พ.ศ.)" data-input onkeyup="formatDateInput(this)">
+                        <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                     </div>
                   </div>
                </div>
 
-               <div class="d-flex justify-content-between align-items-center mb-2"><label class="small fw-bold">Advance Care Plan</label><div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP"><input type="text" class="form-control form-control-sm date-pk" id="acp_date" placeholder="วันที่ทำ"></div></div>
+               <div class="d-flex justify-content-between align-items-center mb-2"><label class="small fw-bold">Advance Care Plan</label>
+                  <div class="d-flex gap-2">
+                      <input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP">
+                      <div class="input-group thai-datepicker w-auto" style="min-width: 150px;">
+                          <input type="text" class="form-control form-control-sm" id="acp_date" placeholder="วันที่" data-input onkeyup="formatDateInput(this)">
+                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                      </div>
+                  </div>
+               </div>
                <table class="table table-bordered table-sm bg-white" style="font-size:0.85rem"><thead class="table-light"><tr><th>Topic</th><th class="text-center">Want</th><th class="text-center">Don't</th><th class="text-center">Undecided</th></tr></thead><tbody id="acpTableBody"></tbody></table>
             </div>
             
             <div class="bg-soft-green p-3 rounded mb-4">
                <div class="row g-3">
-                 <div class="col-6"><label class="small">นัดถัดไป</label><input type="text" class="form-control date-pk" id="next_visit_date" placeholder="เลือกวันนัด"></div>
+                 <div class="col-6"><label class="small">นัดถัดไป</label>
+                    <div class="input-group thai-datepicker">
+                        <input type="text" class="form-control" id="next_visit_date" placeholder="วว/ดด/ปปปป" data-input onkeyup="formatDateInput(this)">
+                        <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                    </div>
+                 </div>
                  <div class="col-6"><label class="small">ประเภทนัด</label><select class="form-select" id="next_visit_type"><option>OPD</option><option>HOME VISIT</option><option>TELEMED</option></select></div>
                  
                  <div class="col-12"><label class="small">Lab Values</label>
                     <div class="input-group">
-                      <input type="text" class="form-control date-pk" id="lab_date" placeholder="วันที่ Lab" style="max-width: 120px;">
+                      <div class="input-group thai-datepicker" style="width: 140px; flex:none;">
+                          <input type="text" class="form-control" id="lab_date" placeholder="วันที่ Lab" data-input onkeyup="formatDateInput(this)">
+                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                      </div>
+                      
                       <span class="input-group-text">Cr</span><input type="number" class="form-control" id="lab_cr" step="0.01" placeholder="xx.xx" oninput="validateLabInput(this, 'cr')" onchange="formatLabFinal(this)">
                       <span class="input-group-text">eGFR</span><input type="number" class="form-control" id="lab_egfr" step="0.01" placeholder="xxx.xx" oninput="validateLabInput(this, 'egfr')" onchange="formatLabFinal(this)">
                     </div>
@@ -193,7 +209,10 @@
                              <option value="Other">อื่นๆ</option>
                           </select>
                        </div>
-                       <input type="text" class="form-control form-control-sm w-auto date-pk" id="discharge_date" placeholder="วันที่จำหน่าย/ตาย">
+                       <div class="input-group thai-datepicker w-auto">
+                          <input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่จำหน่าย/ตาย" data-input onkeyup="formatDateInput(this)">
+                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                       </div>
                     </div>
                  </div>
                </div>
