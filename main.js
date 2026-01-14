@@ -1,4 +1,4 @@
-// *** อย่าลืมเอา URL ใหม่จากการ Deploy มาใส่ตรงนี้ ***
+// *** ใส่ URL Script ของคุณตรงนี้ ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQIbm1vl8AmYxGe5qBV0erTS15WpLiO2VxEUt9OBqiInmsMH-pEW7GwVkNZy_plFVu/exec';
 
 const diseaseData = {
@@ -41,13 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPPS(); renderESAS(); renderACP(); renderMedOptions(); renderDiseaseType(); 
   addPhoneField(); loadData(); showPage('menu');
   
-  // *** เรียกใช้ปฏิทินภาษาไทย ***
+  // เรียกใช้ Hybrid Datepicker
   initThaiDatepicker();
 });
 
-// --- ฟังก์ชันปฏิทินไทย (Flatpickr) ---
+// --- ฟังก์ชันปฏิทินไทย (Hybrid: พิมพ์ได้ + กดปุ่มเลือกได้) ---
 function initThaiDatepicker() {
-  flatpickr(".date-pk", {
+  flatpickr(".thai-datepicker", {
+    wrap: true,          // ใช้กับ Input Group
+    allowInput: true,    // พิมพ์เองได้
     locale: "th",
     dateFormat: "d/m/Y",
     disableMobile: "true",
@@ -60,6 +62,7 @@ function initThaiDatepicker() {
        setTimeout(() => { yearInput.value = parseInt(yearInput.value) + 543; }, 10);
     },
     onValueUpdate: function(selectedDates, dateStr, instance) {
+        // เมื่อเลือกวันที่จากปฏิทิน
         if(selectedDates[0]) {
             const d = selectedDates[0];
             const day = String(d.getDate()).padStart(2,'0');
@@ -69,10 +72,12 @@ function initThaiDatepicker() {
             if(instance.input.id === 'dob') calculateAge();
         }
     },
+    // Logic แปลงปี พ.ศ. ที่พิมพ์เอง -> ค.ศ. ให้ปฏิทินเข้าใจ
     parseDate: (datestr, format) => {
       if(!datestr) return null;
       const parts = datestr.split('/');
       if(parts.length===3) {
+          // พิมพ์ 2569 -> ลบ 543 = 2026
           return new Date(`${parseInt(parts[2])-543}-${parts[1]}-${parts[0]}`);
       }
       return new Date();
@@ -84,11 +89,43 @@ function loadData() {
   fetch(SCRIPT_URL + '?op=getAll').then(r=>r.json()).then(d=>{ allPatients=d; renderActivePatients(); renderSummary(); }).catch(e=>console.error(e));
 }
 
+// --- Date Format Helpers ---
+function formatDateInput(input) {
+    // Input Mask สำหรับการพิมพ์เอง (ใส่ / ให้)
+    let v = input.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+    else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+    else input.value = v;
+}
+
+function dateThToGregorian(thDateStr) {
+    // 14/01/2569 -> 2026-01-14 (สำหรับส่ง Server)
+    if(!thDateStr || thDateStr.length !== 10) return '';
+    const parts = thDateStr.split('/');
+    if(parts.length !== 3) return '';
+    const day = parts[0];
+    const month = parts[1];
+    const yearAD = parseInt(parts[2]) - 543; 
+    return `${yearAD}-${month}-${day}`;
+}
+
+function gregorianToDateTh(isoDateStr) {
+    // 2026-01-14 -> 14/01/2569 (สำหรับแสดงผล)
+    if(!isoDateStr) return '';
+    const d = new Date(isoDateStr);
+    if(isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const yearBE = d.getFullYear() + 543;
+    return `${day}/${month}/${yearBE}`;
+}
+
 function calculateAge() {
     const thDate = document.getElementById('dob').value;
     if (!thDate || thDate.length !== 10) { document.getElementById('age_display').value = '-'; return; }
-    const parts = thDate.split('/');
-    const dob = new Date(`${parseInt(parts[2])-543}-${parts[1]}-${parts[0]}`);
+    const isoDate = dateThToGregorian(thDate);
+    if(!isoDate) return;
+    const dob = new Date(isoDate);
     const diff = Date.now() - dob.getTime();
     const ageDate = new Date(diff); 
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
@@ -106,27 +143,6 @@ function updateEditHeader() {
     if(!editingPatient) return;
     document.getElementById('editInfoName').innerText = document.getElementById('fullname').value;
     document.getElementById('editInfoCurrentType').innerText = "Now: " + document.getElementById('admitType').value;
-}
-
-// --- Helper แปลงวันที่สำหรับส่ง Google Sheet ---
-function dateThToGregorian(thDateStr) {
-    if(!thDateStr || thDateStr.length !== 10) return '';
-    const parts = thDateStr.split('/');
-    if(parts.length !== 3) return '';
-    const day = parts[0];
-    const month = parts[1];
-    const yearAD = parseInt(parts[2]) - 543; 
-    return `${yearAD}-${month}-${day}`;
-}
-
-function gregorianToDateTh(isoDateStr) {
-    if(!isoDateStr) return '';
-    const d = new Date(isoDateStr);
-    if(isNaN(d.getTime())) return '';
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const yearBE = d.getFullYear() + 543;
-    return `${day}/${month}/${yearBE}`;
 }
 
 function handleFormSubmit(e) {
@@ -216,10 +232,7 @@ function openEditRegistration(hn) {
   document.getElementById('hn').value = p.hn; document.getElementById('hn').readOnly = true;
   document.getElementById('fullname').value = p.name;
   document.getElementById('gender').value = p.gender;
-  
-  // แปลง ISO Date -> Thai Date สำหรับแสดงผล
   document.getElementById('dob').value = gregorianToDateTh(p.dob); calculateAge();
-  
   document.getElementById('admitType').value = p.type_admit; 
   if(p.address) {
      ['house','moo','tumbon','amphoe','province','lat','long'].forEach(k=>{
@@ -260,7 +273,6 @@ function openEditRegistration(hn) {
   updateEditHeader();
 }
 
-// *** แก้ไขฟังก์ชันดูประวัติ (ให้ Modal ทำงานถูกต้อง) ***
 function showHistoryModal() {
   const hn = document.getElementById('hn').value;
   const name = document.getElementById('fullname').value;
@@ -274,15 +286,13 @@ function showHistoryModal() {
   document.getElementById('historyLoading').classList.remove('d-none');
   document.getElementById('historyContent').classList.add('d-none');
   
-  modal.show(); // แสดง Modal
+  modal.show();
 
   const lat=document.getElementById('lat').value, long=document.getElementById('long').value, btnMap=document.getElementById('btnMapHistory');
   if(lat&&long) { 
       btnMap.classList.remove('d-none'); 
       btnMap.onclick=()=>window.open(`http://maps.google.com/?q=${lat},${long}`,'_blank'); 
-  } else {
-      btnMap.classList.add('d-none');
-  }
+  } else { btnMap.classList.add('d-none'); }
 
   fetch(SCRIPT_URL + '?op=getHistory&hn=' + hn)
     .then(r=>r.json())
@@ -291,9 +301,7 @@ function showHistoryModal() {
          document.getElementById('historyLoading').classList.add('d-none'); 
          document.getElementById('historyContent').classList.remove('d-none'); 
     })
-    .catch(err => {
-        document.getElementById('historyLoading').innerHTML = '<span class="text-danger">เกิดข้อผิดพลาดในการดึงข้อมูล</span>';
-    });
+    .catch(err => { document.getElementById('historyLoading').innerHTML = '<span class="text-danger">Error</span>'; });
 }
 
 function resetForm() {
@@ -308,9 +316,8 @@ function resetForm() {
   document.getElementById('age_display').value = '-';
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; }); renderESAS(); 
   updateDiseaseUI();
-  
-  // ล้างค่าวันที่ใน Flatpickr ด้วย
-  document.querySelectorAll('.date-pk').forEach(el => {
+  // Clear Flatpickr
+  document.querySelectorAll('.thai-datepicker').forEach(el => {
       if(el._flatpickr) el._flatpickr.clear();
   });
 }
