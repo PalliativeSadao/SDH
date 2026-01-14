@@ -16,10 +16,8 @@ const diseaseData = {
   }
 };
 
-// Sort Diseases Alphabetically on Init
-Object.keys(diseaseData["Non-Cancer"]).forEach(key => {
-    diseaseData["Non-Cancer"][key].sort((a, b) => a.localeCompare(b, 'th'));
-});
+// Sort Diseases
+Object.keys(diseaseData["Non-Cancer"]).forEach(key => { diseaseData["Non-Cancer"][key].sort((a, b) => a.localeCompare(b, 'th')); });
 diseaseData["Cancer"]["Primary"].sort((a, b) => a.localeCompare(b, 'th'));
 diseaseData["Cancer"]["Metastasis"].sort((a, b) => a.localeCompare(b, 'th'));
 
@@ -37,7 +35,7 @@ const acpTopics = ["ET tube", "CPR", "Inotrope", "Hemodialysis", "NG tube", "Mor
 const esasTopics = ["Pain (ปวด)", "Fatigue (เหนื่อย)", "Nausea (คลื่นไส้)", "Depression (ซึมเศร้า)", "Anxiety (วิตกกังวล)", "Drowsiness (ง่วงซึม)", "Appetite (เบื่ออาหาร)", "Well-being (สบายกายใจ)", "Shortness of breath (เหนื่อยหอบ)"];
 
 let allPatients = [], currentPhones = [], currentDiseases = [], currentMeds = [];
-let editingPatient = null; // เก็บข้อมูลคนไข้ที่กำลังแก้ เพื่อใช้แสดง Header
+let editingPatient = null; 
 
 document.addEventListener('DOMContentLoaded', () => {
   renderPPS(); renderESAS(); renderACP(); renderMedOptions(); renderDiseaseType(); 
@@ -48,24 +46,58 @@ function loadData() {
   fetch(SCRIPT_URL + '?op=getAll').then(r=>r.json()).then(d=>{ allPatients=d; renderActivePatients(); renderSummary(); }).catch(e=>console.error(e));
 }
 
+// --- THAI DATE UTILITIES ---
+function formatDateInput(input) {
+    // ใส่ / อัตโนมัติ (Input Mask)
+    let v = input.value.replace(/\D/g, '').slice(0, 8); // รับเฉพาะตัวเลข 8 หลัก
+    if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+    else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+    else input.value = v;
+}
+
+function dateThToGregorian(thDateStr) {
+    // แปลง 14/01/2569 -> 2026-01-14 (ISO) สำหรับส่ง API
+    if(!thDateStr || thDateStr.length !== 10) return '';
+    const parts = thDateStr.split('/');
+    if(parts.length !== 3) return '';
+    const day = parts[0];
+    const month = parts[1];
+    const yearBE = parseInt(parts[2]);
+    const yearAD = yearBE - 543;
+    return `${yearAD}-${month}-${day}`;
+}
+
+function gregorianToDateTh(isoDateStr) {
+    // แปลง 2026-01-14 -> 14/01/2569 สำหรับแสดงผล
+    if(!isoDateStr) return '';
+    const d = new Date(isoDateStr);
+    if(isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const yearBE = d.getFullYear() + 543;
+    return `${day}/${month}/${yearBE}`;
+}
+
 function calculateAge() {
-    const dobStr = document.getElementById('dob').value;
-    if (!dobStr) { document.getElementById('age_display').value = '-'; return; }
-    const dob = new Date(dobStr);
+    const thDate = document.getElementById('dob').value;
+    if (!thDate || thDate.length !== 10) { document.getElementById('age_display').value = '-'; return; }
+    
+    const isoDate = dateThToGregorian(thDate);
+    if (!isoDate) return;
+
+    const dob = new Date(isoDate);
     const diff = Date.now() - dob.getTime();
     const ageDate = new Date(diff); 
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
     document.getElementById('age_display').value = age + " ปี";
 }
+// ---------------------------
 
 function toggleDeathPlace() {
     const status = document.querySelector('input[name="pt_status"]:checked').value;
     const container = document.getElementById('deathPlaceContainer');
     if (status === 'Death') container.classList.remove('d-none');
-    else {
-        container.classList.add('d-none');
-        document.getElementById('death_place').value = '';
-    }
+    else { container.classList.add('d-none'); document.getElementById('death_place').value = ''; }
 }
 
 function updateEditHeader() {
@@ -83,18 +115,18 @@ function handleFormSubmit(e) {
   const esas={}; document.querySelectorAll('.esas-range').forEach(el=>esas[el.dataset.topic]=el.value);
   const acp={}; acpTopics.forEach(t=>{ const c=document.querySelector(`input[name="acp_${t}"]:checked`); acp[t]=c?c.value:'Undecided'; });
   acp['maker'] = document.getElementById('acp_maker').value;
-  acp['date'] = document.getElementById('acp_date').value;
+  acp['date'] = dateThToGregorian(document.getElementById('acp_date').value); // Convert Date
 
   const livingWill = {
       status: document.querySelector('input[name="lw_status"]:checked').value,
-      date: document.getElementById('lw_date').value
+      date: dateThToGregorian(document.getElementById('lw_date').value) // Convert Date
   };
 
   const formData = {
     hn: hnVal,
     name: document.getElementById('fullname').value,
     gender: document.getElementById('gender').value,
-    dob: document.getElementById('dob').value,
+    dob: dateThToGregorian(document.getElementById('dob').value), // Convert Date
     admitType: document.getElementById('admitType').value,
     phones: phones,
     address: { 
@@ -110,10 +142,15 @@ function handleFormSubmit(e) {
       esas:esas 
     },
     plan: document.getElementById('nursing_plan').value, acp: acp,
-    nextVisitDate: document.getElementById('next_visit_date').value, nextVisitType: document.getElementById('next_visit_type').value,
-    lab: { cr:document.getElementById('lab_cr').value, egfr:document.getElementById('lab_egfr').value, date:document.getElementById('lab_date').value },
+    nextVisitDate: dateThToGregorian(document.getElementById('next_visit_date').value), // Convert Date
+    nextVisitType: document.getElementById('next_visit_type').value,
+    lab: { 
+        cr:document.getElementById('lab_cr').value, 
+        egfr:document.getElementById('lab_egfr').value, 
+        date: dateThToGregorian(document.getElementById('lab_date').value) // Convert Date
+    },
     status: document.querySelector('input[name="pt_status"]:checked').value,
-    dischargeDate: document.getElementById('discharge_date').value,
+    dischargeDate: dateThToGregorian(document.getElementById('discharge_date').value), // Convert Date
     deathPlace: document.getElementById('death_place').value
   };
 
@@ -142,11 +179,10 @@ function openEditRegistration(hn) {
   resetForm(); 
   editingPatient = p;
   
-  // Show Edit Info Header
   document.getElementById('editInfoBar').classList.remove('d-none');
   document.getElementById('editInfoName').innerText = p.name;
-  document.getElementById('editInfoFirstType').innerText = "First: " + (p.type_admit || '-'); // First admit type stored in patient sheet
-  document.getElementById('editInfoCurrentType').innerText = "Now: " + (p.visit_type || 'OPD'); // Just defaulting to OPD for display or last visit
+  document.getElementById('editInfoFirstType').innerText = "First: " + (p.type_admit || '-');
+  document.getElementById('editInfoCurrentType').innerText = "Now: " + (p.visit_type || 'OPD');
 
   document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> แก้ไขข้อมูล`;
   document.getElementById('btnViewHistory').classList.remove('d-none');
@@ -156,9 +192,11 @@ function openEditRegistration(hn) {
   document.getElementById('hn').value = p.hn; document.getElementById('hn').readOnly = true;
   document.getElementById('fullname').value = p.name;
   document.getElementById('gender').value = p.gender;
-  document.getElementById('dob').value = p.dob || ''; calculateAge();
-  document.getElementById('admitType').value = p.type_admit; // In edit mode, usually we want to record a NEW visit, so user might change this
   
+  // แปลง ISO Date กลับเป็น Thai Date
+  document.getElementById('dob').value = gregorianToDateTh(p.dob); calculateAge();
+  
+  document.getElementById('admitType').value = p.type_admit; 
   if(p.address) {
      ['house','moo','tumbon','amphoe','province','lat','long'].forEach(k=>{
         const key = (k==='tumbon')?'sub':(k==='amphoe')?'dist':(k==='province')?'prov':k;
@@ -170,30 +208,29 @@ function openEditRegistration(hn) {
   currentDiseases = p.diseases||[]; renderDiseaseBadges();
   currentMeds = p.meds||[]; renderMedsList();
   
-  // Living Will
   if(p.livingWill) {
       if(p.livingWill.status === 'Made') document.getElementById('lw_made').checked = true;
       else document.getElementById('lw_not').checked = true;
-      document.getElementById('lw_date').value = p.livingWill.date || '';
+      document.getElementById('lw_date').value = gregorianToDateTh(p.livingWill.date);
   }
 
   if(p.acp) {
     Object.keys(p.acp).forEach(k=>{ 
       if(k === 'maker') document.getElementById('acp_maker').value = p.acp[k];
-      else if(k === 'date') document.getElementById('acp_date').value = p.acp[k];
+      else if(k === 'date') document.getElementById('acp_date').value = gregorianToDateTh(p.acp[k]);
       else { const r=document.getElementsByName('acp_'+k); r.forEach(el=>{ if(el.value===p.acp[k]) el.checked=true; }); }
     });
   }
   
-  // Status & Death Place
   document.getElementsByName('pt_status').forEach(el=>{ if(el.value===p.status) el.checked=true; });
   if(p.status === 'Death') {
       document.getElementById('deathPlaceContainer').classList.remove('d-none');
       document.getElementById('death_place').value = p.death_place || '';
   }
   
-  document.getElementById('next_visit_date').value = p.next_visit_date ? p.next_visit_date.substring(0,10) : '';
-  document.getElementById('discharge_date').value = p.discharge_date ? p.discharge_date.substring(0,10) : '';
+  document.getElementById('next_visit_date').value = gregorianToDateTh(p.next_visit_date);
+  document.getElementById('discharge_date').value = gregorianToDateTh(p.discharge_date);
+  if(p.lab) document.getElementById('lab_date').value = gregorianToDateTh(p.lab.date); // แก้ไข Lab Date
 
   showPage('register');
   updateEditHeader();
@@ -206,8 +243,8 @@ function resetForm() {
   updateMapBtnStatus(false);
   document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
   document.querySelector('input[name="pt_status"][value="Alive"]').checked = true;
-  document.getElementById('lw_not').checked = true; // Reset Living Will
-  toggleDeathPlace(); // Hide death place
+  document.getElementById('lw_not').checked = true; 
+  toggleDeathPlace(); 
   document.getElementById('age_display').value = '-';
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; }); renderESAS(); 
   updateDiseaseUI();
@@ -217,14 +254,12 @@ function renderHistoryItems(list) {
   const c = document.getElementById('historyContent');
   if(!list.length) { c.innerHTML='<div class="alert alert-warning">ไม่พบประวัติ</div>'; return; }
   c.innerHTML = list.map(h => {
-     const d = formatDateTH(h.date);
+     const d = formatDateTH(h.date); // ฟังก์ชันนี้แสดงผลสวยๆ (20 ม.ค. 69) ไม่เกี่ยวกับช่องกรอก
      const ppsDisplay = (h.pps!==''&&h.pps!==null&&h.pps!==undefined)?`${h.pps}%`:'ไม่ระบุ';
      let labHtml = ''; if(h.lab_cr||h.lab_egfr) { const ld = h.lab_date ? `<br><span class="text-muted small">วันที่ Lab: ${formatDateTH(h.lab_date)}</span>` : ''; labHtml = `<div class="alert alert-light border p-2 mb-2 small"><i class="fas fa-flask text-danger"></i> <b>Lab:</b> Cr:${h.lab_cr||'-'} eGFR:${h.lab_egfr||'-'} ${ld}</div>`; }
      
-     // Meds in History
      let medHtml = (h.meds&&h.meds.length) ? '<ul class="mb-0 ps-3 small text-muted">'+h.meds.map(m=>`<li>${m.name}</li>`).join('')+'</ul>' : '-';
      
-     // ACP & Living Will in History
      let acpHtml = '';
      if(h.livingWill && h.livingWill.status === 'Made') {
          acpHtml += `<div class="mb-1 small text-success"><i class="fas fa-file-contract"></i> <b>Living Will:</b> ทำแล้ว (${formatDateTH(h.livingWill.date)})</div>`;
@@ -266,8 +301,7 @@ function renderHistoryItems(list) {
   }).join('');
 }
 
-// ... (Helper functions remain the same: showPage, updateMapBtnStatus, getLocation, addPhoneField, validateLabInput, formatLabFinal, renderPPS, renderACP, renderMedOptions, addMed, renderMedsList, renderActivePatients, renderDeceasedPatients, renderApptList, renderSummary, initSlider, renderDiseaseType, updateDiseaseUI, updateDiseaseSub, checkDiseaseOther, addDisease, renderDiseaseBadges, renderESAS, updateESASScore, formatDateTH, getTypeClass) ...
-// (เพื่อความกระชับ ขอละ helper functions เดิมไว้ ถ้าต้องการให้แปะซ้ำบอกได้ครับ แต่แนะนำให้ใช้ของเดิมได้เลยเพราะ Logic หลักๆ อยู่ข้างบนนี้แล้ว)
+// ... Helper Functions (เหมือนเดิม) ...
 function showPage(pid) { document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); document.getElementById('page-'+pid).classList.remove('d-none'); document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); const links = document.querySelectorAll('.nav-link'); links.forEach(l => { if(l.getAttribute('onclick').includes(`'${pid}'`)) l.classList.add('active'); }); if(pid==='appoint') initSlider(); }
 function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดปัจจุบัน';} }
 function getLocation() { if(navigator.geolocation){ Swal.fire({title:'กำลังระบุพิกัด...',didOpen:()=>Swal.showLoading()}); navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('lat').value=p.coords.latitude; document.getElementById('long').value=p.coords.longitude; updateMapBtnStatus(true); Swal.fire({icon:'success', title:'บันทึกพิกัดสำเร็จ', text:`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`, timer:1500, showConfirmButton:false}); }, err=>{ Swal.fire('Error','ไม่สามารถระบุตำแหน่งได้','error'); }); } else { Swal.fire('Error','Browser ไม่รองรับ GPS','error'); } }
