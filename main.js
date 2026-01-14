@@ -1,4 +1,4 @@
-// *** อย่าลืม Deploy Apps Script ใหม่ แล้วเอา URL มาใส่ตรงนี้ ***
+// *** อย่าลืมเอา URL ใหม่จากการ Deploy มาใส่ตรงนี้ ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQIbm1vl8AmYxGe5qBV0erTS15WpLiO2VxEUt9OBqiInmsMH-pEW7GwVkNZy_plFVu/exec';
 
 const diseaseData = {
@@ -40,58 +40,60 @@ let editingPatient = null;
 document.addEventListener('DOMContentLoaded', () => {
   renderPPS(); renderESAS(); renderACP(); renderMedOptions(); renderDiseaseType(); 
   addPhoneField(); loadData(); showPage('menu');
+  
+  // *** เรียกใช้ปฏิทินภาษาไทย ***
+  initThaiDatepicker();
 });
+
+// --- ฟังก์ชันปฏิทินไทย (Flatpickr) ---
+function initThaiDatepicker() {
+  flatpickr(".date-pk", {
+    locale: "th",
+    dateFormat: "d/m/Y",
+    disableMobile: "true",
+    onReady: function(selectedDates, dateStr, instance) {
+      const yearInput = instance.currentYearElement;
+      if (yearInput) { yearInput.value = parseInt(yearInput.value) + 543; }
+    },
+    onYearChange: function(selectedDates, dateStr, instance) {
+       const yearInput = instance.currentYearElement;
+       setTimeout(() => { yearInput.value = parseInt(yearInput.value) + 543; }, 10);
+    },
+    onValueUpdate: function(selectedDates, dateStr, instance) {
+        if(selectedDates[0]) {
+            const d = selectedDates[0];
+            const day = String(d.getDate()).padStart(2,'0');
+            const month = String(d.getMonth()+1).padStart(2,'0');
+            const yearBE = d.getFullYear() + 543;
+            instance.input.value = `${day}/${month}/${yearBE}`;
+            if(instance.input.id === 'dob') calculateAge();
+        }
+    },
+    parseDate: (datestr, format) => {
+      if(!datestr) return null;
+      const parts = datestr.split('/');
+      if(parts.length===3) {
+          return new Date(`${parseInt(parts[2])-543}-${parts[1]}-${parts[0]}`);
+      }
+      return new Date();
+    }
+  });
+}
 
 function loadData() {
   fetch(SCRIPT_URL + '?op=getAll').then(r=>r.json()).then(d=>{ allPatients=d; renderActivePatients(); renderSummary(); }).catch(e=>console.error(e));
 }
 
-// --- THAI DATE UTILITIES ---
-function formatDateInput(input) {
-    // ใส่ / อัตโนมัติ (Input Mask)
-    let v = input.value.replace(/\D/g, '').slice(0, 8); // รับเฉพาะตัวเลข 8 หลัก
-    if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
-    else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
-    else input.value = v;
-}
-
-function dateThToGregorian(thDateStr) {
-    // แปลง 14/01/2569 -> 2026-01-14 (ISO) สำหรับส่ง API
-    if(!thDateStr || thDateStr.length !== 10) return '';
-    const parts = thDateStr.split('/');
-    if(parts.length !== 3) return '';
-    const day = parts[0];
-    const month = parts[1];
-    const yearBE = parseInt(parts[2]);
-    const yearAD = yearBE - 543;
-    return `${yearAD}-${month}-${day}`;
-}
-
-function gregorianToDateTh(isoDateStr) {
-    // แปลง 2026-01-14 -> 14/01/2569 สำหรับแสดงผล
-    if(!isoDateStr) return '';
-    const d = new Date(isoDateStr);
-    if(isNaN(d.getTime())) return '';
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const yearBE = d.getFullYear() + 543;
-    return `${day}/${month}/${yearBE}`;
-}
-
 function calculateAge() {
     const thDate = document.getElementById('dob').value;
     if (!thDate || thDate.length !== 10) { document.getElementById('age_display').value = '-'; return; }
-    
-    const isoDate = dateThToGregorian(thDate);
-    if (!isoDate) return;
-
-    const dob = new Date(isoDate);
+    const parts = thDate.split('/');
+    const dob = new Date(`${parseInt(parts[2])-543}-${parts[1]}-${parts[0]}`);
     const diff = Date.now() - dob.getTime();
     const ageDate = new Date(diff); 
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
     document.getElementById('age_display').value = age + " ปี";
 }
-// ---------------------------
 
 function toggleDeathPlace() {
     const status = document.querySelector('input[name="pt_status"]:checked').value;
@@ -106,6 +108,27 @@ function updateEditHeader() {
     document.getElementById('editInfoCurrentType').innerText = "Now: " + document.getElementById('admitType').value;
 }
 
+// --- Helper แปลงวันที่สำหรับส่ง Google Sheet ---
+function dateThToGregorian(thDateStr) {
+    if(!thDateStr || thDateStr.length !== 10) return '';
+    const parts = thDateStr.split('/');
+    if(parts.length !== 3) return '';
+    const day = parts[0];
+    const month = parts[1];
+    const yearAD = parseInt(parts[2]) - 543; 
+    return `${yearAD}-${month}-${day}`;
+}
+
+function gregorianToDateTh(isoDateStr) {
+    if(!isoDateStr) return '';
+    const d = new Date(isoDateStr);
+    if(isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const yearBE = d.getFullYear() + 543;
+    return `${day}/${month}/${yearBE}`;
+}
+
 function handleFormSubmit(e) {
   e.preventDefault();
   const hnVal = document.getElementById('hn').value;
@@ -115,18 +138,18 @@ function handleFormSubmit(e) {
   const esas={}; document.querySelectorAll('.esas-range').forEach(el=>esas[el.dataset.topic]=el.value);
   const acp={}; acpTopics.forEach(t=>{ const c=document.querySelector(`input[name="acp_${t}"]:checked`); acp[t]=c?c.value:'Undecided'; });
   acp['maker'] = document.getElementById('acp_maker').value;
-  acp['date'] = dateThToGregorian(document.getElementById('acp_date').value); // Convert Date
+  acp['date'] = dateThToGregorian(document.getElementById('acp_date').value); 
 
   const livingWill = {
       status: document.querySelector('input[name="lw_status"]:checked').value,
-      date: dateThToGregorian(document.getElementById('lw_date').value) // Convert Date
+      date: dateThToGregorian(document.getElementById('lw_date').value)
   };
 
   const formData = {
     hn: hnVal,
     name: document.getElementById('fullname').value,
     gender: document.getElementById('gender').value,
-    dob: dateThToGregorian(document.getElementById('dob').value), // Convert Date
+    dob: dateThToGregorian(document.getElementById('dob').value),
     admitType: document.getElementById('admitType').value,
     phones: phones,
     address: { 
@@ -142,22 +165,22 @@ function handleFormSubmit(e) {
       esas:esas 
     },
     plan: document.getElementById('nursing_plan').value, acp: acp,
-    nextVisitDate: dateThToGregorian(document.getElementById('next_visit_date').value), // Convert Date
+    nextVisitDate: dateThToGregorian(document.getElementById('next_visit_date').value),
     nextVisitType: document.getElementById('next_visit_type').value,
     lab: { 
         cr:document.getElementById('lab_cr').value, 
         egfr:document.getElementById('lab_egfr').value, 
-        date: dateThToGregorian(document.getElementById('lab_date').value) // Convert Date
+        date: dateThToGregorian(document.getElementById('lab_date').value)
     },
     status: document.querySelector('input[name="pt_status"]:checked').value,
-    dischargeDate: dateThToGregorian(document.getElementById('discharge_date').value), // Convert Date
+    dischargeDate: dateThToGregorian(document.getElementById('discharge_date').value),
     deathPlace: document.getElementById('death_place').value
   };
 
-  Swal.fire({title:'Saving...', didOpen:()=>Swal.showLoading()});
+  Swal.fire({title:'กำลังบันทึก...', didOpen:()=>Swal.showLoading()});
   fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(formData) }).then(r=>r.json()).then(res=>{
      if(res.success){ 
-       Swal.fire({title:'Success', icon:'success', timer:1500, showConfirmButton:false});
+       Swal.fire({title:'บันทึกสำเร็จ', icon:'success', timer:1500, showConfirmButton:false});
        resetForm(); loadData(); showPage('menu');
      } else Swal.fire('Error',res.message,'error');
   });
@@ -186,6 +209,7 @@ function openEditRegistration(hn) {
 
   document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> แก้ไขข้อมูล`;
   document.getElementById('btnViewHistory').classList.remove('d-none');
+  
   const linkMap = document.getElementById('linkMap');
   if(p.address && p.address.lat) { linkMap.classList.remove('d-none'); linkMap.onclick = () => window.open(`http://maps.google.com/?q=${p.address.lat},${p.address.long}`, '_blank'); updateMapBtnStatus(true); }
   
@@ -193,7 +217,7 @@ function openEditRegistration(hn) {
   document.getElementById('fullname').value = p.name;
   document.getElementById('gender').value = p.gender;
   
-  // แปลง ISO Date กลับเป็น Thai Date
+  // แปลง ISO Date -> Thai Date สำหรับแสดงผล
   document.getElementById('dob').value = gregorianToDateTh(p.dob); calculateAge();
   
   document.getElementById('admitType').value = p.type_admit; 
@@ -230,10 +254,46 @@ function openEditRegistration(hn) {
   
   document.getElementById('next_visit_date').value = gregorianToDateTh(p.next_visit_date);
   document.getElementById('discharge_date').value = gregorianToDateTh(p.discharge_date);
-  if(p.lab) document.getElementById('lab_date').value = gregorianToDateTh(p.lab.date); // แก้ไข Lab Date
+  if(p.lab) document.getElementById('lab_date').value = gregorianToDateTh(p.lab.date);
 
   showPage('register');
   updateEditHeader();
+}
+
+// *** แก้ไขฟังก์ชันดูประวัติ (ให้ Modal ทำงานถูกต้อง) ***
+function showHistoryModal() {
+  const hn = document.getElementById('hn').value;
+  const name = document.getElementById('fullname').value;
+  
+  if(!hn) { Swal.fire('แจ้งเตือน', 'กรุณากรอก HN หรือเลือกผู้ป่วยก่อนดูประวัติ', 'warning'); return; }
+
+  const historyModalEl = document.getElementById('historyModal');
+  const modal = new bootstrap.Modal(historyModalEl);
+  
+  document.getElementById('historyPatientName').innerText = name;
+  document.getElementById('historyLoading').classList.remove('d-none');
+  document.getElementById('historyContent').classList.add('d-none');
+  
+  modal.show(); // แสดง Modal
+
+  const lat=document.getElementById('lat').value, long=document.getElementById('long').value, btnMap=document.getElementById('btnMapHistory');
+  if(lat&&long) { 
+      btnMap.classList.remove('d-none'); 
+      btnMap.onclick=()=>window.open(`http://maps.google.com/?q=${lat},${long}`,'_blank'); 
+  } else {
+      btnMap.classList.add('d-none');
+  }
+
+  fetch(SCRIPT_URL + '?op=getHistory&hn=' + hn)
+    .then(r=>r.json())
+    .then(d=>{ 
+         renderHistoryItems(d); 
+         document.getElementById('historyLoading').classList.add('d-none'); 
+         document.getElementById('historyContent').classList.remove('d-none'); 
+    })
+    .catch(err => {
+        document.getElementById('historyLoading').innerHTML = '<span class="text-danger">เกิดข้อผิดพลาดในการดึงข้อมูล</span>';
+    });
 }
 
 function resetForm() {
@@ -248,18 +308,21 @@ function resetForm() {
   document.getElementById('age_display').value = '-';
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; }); renderESAS(); 
   updateDiseaseUI();
+  
+  // ล้างค่าวันที่ใน Flatpickr ด้วย
+  document.querySelectorAll('.date-pk').forEach(el => {
+      if(el._flatpickr) el._flatpickr.clear();
+  });
 }
 
 function renderHistoryItems(list) {
   const c = document.getElementById('historyContent');
   if(!list.length) { c.innerHTML='<div class="alert alert-warning">ไม่พบประวัติ</div>'; return; }
   c.innerHTML = list.map(h => {
-     const d = formatDateTH(h.date); // ฟังก์ชันนี้แสดงผลสวยๆ (20 ม.ค. 69) ไม่เกี่ยวกับช่องกรอก
+     const d = formatDateTH(h.date);
      const ppsDisplay = (h.pps!==''&&h.pps!==null&&h.pps!==undefined)?`${h.pps}%`:'ไม่ระบุ';
      let labHtml = ''; if(h.lab_cr||h.lab_egfr) { const ld = h.lab_date ? `<br><span class="text-muted small">วันที่ Lab: ${formatDateTH(h.lab_date)}</span>` : ''; labHtml = `<div class="alert alert-light border p-2 mb-2 small"><i class="fas fa-flask text-danger"></i> <b>Lab:</b> Cr:${h.lab_cr||'-'} eGFR:${h.lab_egfr||'-'} ${ld}</div>`; }
-     
      let medHtml = (h.meds&&h.meds.length) ? '<ul class="mb-0 ps-3 small text-muted">'+h.meds.map(m=>`<li>${m.name}</li>`).join('')+'</ul>' : '-';
-     
      let acpHtml = '';
      if(h.livingWill && h.livingWill.status === 'Made') {
          acpHtml += `<div class="mb-1 small text-success"><i class="fas fa-file-contract"></i> <b>Living Will:</b> ทำแล้ว (${formatDateTH(h.livingWill.date)})</div>`;
@@ -270,38 +333,12 @@ function renderHistoryItems(list) {
          Object.entries(h.acp).forEach(([k,v])=>{ if(k!=='maker' && k!=='date' && v!=='Undecided') acpHtml += `<span class="me-2 d-inline-block">• ${k}: <u>${v}</u></span>`; }); 
          acpHtml += `</div>`; 
      }
-
      let esasHtml = ''; if(h.esas) Object.entries(h.esas).forEach(([k,v])=>{if(v>0)esasHtml+=`<span class="badge bg-warning text-dark me-1 border">${k}:${v}</span>`;});
      const v = h.vitals||{};
-     
-     return `
-     <div class="card mb-3 shadow-sm history-card">
-        <div class="card-header bg-white d-flex justify-content-between">
-           <span class="history-date fw-bold">${d}</span>
-           <span class="badge bg-light text-dark border">PPS: ${ppsDisplay}</span>
-        </div>
-        <div class="card-body">
-           ${labHtml}
-           <div class="mb-2">${esasHtml}</div>
-           <div class="row">
-              <div class="col-6 border-end">
-                 <p class="mb-1 small"><b>Vitals:</b> BP:${v.bp||'-'} P:${v.pr||'-'} RR:${v.rr||'-'} O2:${v.o2||'-'} T:${v.bt||'-'}</p>
-                 <p class="mb-1 small"><b>GCS:</b> ${h.gcs||'-'}</p>
-                 <p class="mb-1 small"><b>Plan:</b> ${h.plan||'-'}</p>
-              </div>
-              <div class="col-6">
-                 <p class="mb-1 small fw-bold text-success">ยา:</p>${medHtml}
-              </div>
-              <div class="col-12 mt-2 border-top pt-2">
-                 ${acpHtml}
-              </div>
-           </div>
-        </div>
-     </div>`;
+     return `<div class="card mb-3 shadow-sm history-card"><div class="card-header bg-white d-flex justify-content-between"><span class="history-date fw-bold">${d}</span><span class="badge bg-light text-dark border">PPS: ${ppsDisplay}</span></div><div class="card-body">${labHtml}<div class="mb-2">${esasHtml}</div><div class="row"><div class="col-6 border-end"><p class="mb-1 small"><b>Vitals:</b> BP:${v.bp||'-'} P:${v.pr||'-'} RR:${v.rr||'-'} O2:${v.o2||'-'} T:${v.bt||'-'}</p><p class="mb-1 small"><b>GCS:</b> ${h.gcs||'-'}</p><p class="mb-1 small"><b>Plan:</b> ${h.plan||'-'}</p></div><div class="col-6"><p class="mb-1 small fw-bold text-success">ยา:</p>${medHtml}</div><div class="col-12 mt-2 border-top pt-2">${acpHtml}</div></div></div></div>`;
   }).join('');
 }
 
-// ... Helper Functions (เหมือนเดิม) ...
 function showPage(pid) { document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); document.getElementById('page-'+pid).classList.remove('d-none'); document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); const links = document.querySelectorAll('.nav-link'); links.forEach(l => { if(l.getAttribute('onclick').includes(`'${pid}'`)) l.classList.add('active'); }); if(pid==='appoint') initSlider(); }
 function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดปัจจุบัน';} }
 function getLocation() { if(navigator.geolocation){ Swal.fire({title:'กำลังระบุพิกัด...',didOpen:()=>Swal.showLoading()}); navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('lat').value=p.coords.latitude; document.getElementById('long').value=p.coords.longitude; updateMapBtnStatus(true); Swal.fire({icon:'success', title:'บันทึกพิกัดสำเร็จ', text:`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`, timer:1500, showConfirmButton:false}); }, err=>{ Swal.fire('Error','ไม่สามารถระบุตำแหน่งได้','error'); }); } else { Swal.fire('Error','Browser ไม่รองรับ GPS','error'); } }
