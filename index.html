@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Palliative Care System</title>
-  
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2E8B57">
   <link rel="apple-touch-icon" href="https://img2.pic.in.th/logo48f9ac4bb514dfca.png">
@@ -24,21 +23,12 @@
     <div class="container-fluid">
       <a class="navbar-brand ms-2" href="#" onclick="showPage('menu')">
         <img src="https://img2.pic.in.th/pic/--PNG-logoname.png" alt="Logo" height="42" class="me-2">
-        <div class="d-flex flex-column">
-           <span style="line-height:1.1; font-size:1.1rem;">Palliative Care</span>
-           <span style="font-size:0.7rem; color:#666; font-weight:400;">รพ.สะเดา จ.สงขลา</span>
-        </div>
+        <div class="d-flex flex-column"><span style="line-height:1.1; font-size:1.1rem;">Palliative Care</span><span style="font-size:0.7rem; color:#666; font-weight:400;">รพ.สะเดา จ.สงขลา</span></div>
       </a>
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center gap-2 mt-2 mt-lg-0">
-          <li class="nav-item d-none" id="installContainer">
-            <button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()">
-              <i class="fas fa-download me-1"></i> ติดตั้งแอป
-            </button>
-          </li>
+          <li class="nav-item d-none" id="installContainer"><button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()"><i class="fas fa-download me-1"></i> ติดตั้งแอป</button></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('menu')"><i class="fas fa-home me-1"></i> หน้าหลัก</a></li>
           <li class="nav-item"><a class="nav-link" id="nav-reg" onclick="openNewRegistration()"><i class="fas fa-user-plus me-1"></i> ลงทะเบียน</a></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('active')"><i class="fas fa-procedures me-1"></i> คงพยาบาล</a></li>
@@ -92,19 +82,8 @@
                 <div class="col-6 col-md-3"><label class="small">HN</label><input type="tel" class="form-control" id="hn" required placeholder="xxxxxxx" maxlength="7"></div>
                 <div class="col-6 col-md-3"><label class="small">เพศ</label><select class="form-select" id="gender"><option value="Male">ชาย</option><option value="Female">หญิง</option></select></div>
                 <div class="col-12 col-md-6"><label class="small">ชื่อ - สกุล</label><input type="text" class="form-control" id="fullname" required></div>
-                
-                <div class="col-6 col-md-4">
-                   <label class="small">วันเกิด</label>
-                   <div class="input-group thai-datepicker">
-                      <input type="text" class="form-control" id="dob" placeholder="วว/ดด/ปปปป (พ.ศ.)" data-input onkeyup="formatDateInput(this); calculateAge();">
-                      <span class="input-group-text bg-white text-success" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
-                   </div>
-                </div>
-                <div class="col-6 col-md-2">
-                   <label class="small">อายุ</label>
-                   <input type="text" class="form-control bg-white" id="age_display" readonly placeholder="-" style="font-weight:bold; color:#2E8B57;">
-                </div>
-
+                <div class="col-6 col-md-4"><label class="small">วันเกิด</label><div class="input-group thai-datepicker"><input type="text" class="form-control" id="dob" placeholder="วว/ดด/ปปปป (พ.ศ.)" data-input onkeyup="formatDateInput(this); calculateAge();"><span class="input-group-text bg-white text-success" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div></div>
+                <div class="col-6 col-md-2"><label class="small">อายุ</label><input type="text" class="form-control bg-white" id="age_display" readonly placeholder="-" style="font-weight:bold; color:#2E8B57;"></div>
                 <div class="col-12 col-md-6"><label class="small">ประเภทรับ (ปัจจุบัน)</label><select class="form-select" id="admitType" onchange="updateEditHeader()"><option>IPD</option><option>OPD</option><option>HOME VISIT</option><option>TELEMED</option></select></div>
                 <div class="col-12"><label class="small">เบอร์ติดต่อ</label><div id="phoneContainer"></div><button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addPhoneField()">+ เพิ่มเบอร์</button></div>
                 <div class="col-12"><label class="small">ที่อยู่</label> <button type="button" class="btn btn-sm btn-info text-white ms-2" id="btnGeo" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> ปักหมุด</button><div class="input-group mt-2 mb-2"><input type="text" class="form-control" id="addr_house" placeholder="บ้านเลขที่"><input type="text" class="form-control" id="addr_moo" placeholder="หมู่"></div><input type="text" class="form-control mb-2" id="addr_road" placeholder="ถนน/ซอย"><div class="row g-2"><div class="col"><input type="text" class="form-control" id="addr_tumbon" placeholder="ตำบล"></div><div class="col"><input type="text" class="form-control" id="addr_amphoe" placeholder="อำเภอ"></div><div class="col"><input type="text" class="form-control" id="addr_province" placeholder="จังหวัด"></div></div><input type="hidden" id="lat"><input type="hidden" id="long"></div>
@@ -115,7 +94,7 @@
                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-stethoscope"></i> ข้อมูลทางการแพทย์</h6>
                <div class="row g-3">
                   <div class="col-12">
-                    <label class="small fw-bold">โรคประจำตัว (เรียง ก-ฮ)</label>
+                    <label class="small fw-bold">โรคประจำตัว</label>
                     <div class="card p-3 mb-2 border-0 shadow-sm">
                        <div class="row g-2">
                           <div class="col-12"><select class="form-select" id="disease_type" onchange="updateDiseaseUI()"></select></div>
@@ -138,85 +117,60 @@
             <div class="row g-3 mb-4">
                <div class="col-6"><label class="small">PPS Score</label><select class="form-select" id="pps_score"><option value="0">ไม่ระบุ</option></select></div>
                <div class="col-6"><label class="small">GCS</label><input type="text" class="form-control" id="gcs_score" placeholder="E V M"></div>
-               <div class="col-12">
-                  <label class="small">Vitals</label>
-                  <div class="input-group">
-                    <span class="input-group-text">BP</span><input type="text" class="form-control" id="vs_bp">
-                    <span class="input-group-text">PR</span><input type="number" class="form-control" id="vs_pr">
-                    <span class="input-group-text">RR</span><input type="number" class="form-control" id="vs_rr">
-                    <span class="input-group-text">O2</span><input type="number" class="form-control" id="vs_o2">
-                    <span class="input-group-text">T</span><input type="number" class="form-control" id="vs_bt" step="0.1" placeholder="37.0" onchange="if(this.value) this.value=parseFloat(this.value).toFixed(1);">
-                  </div>
-               </div>
-               <div class="col-12">
-                   <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#esasBox"><i class="fas fa-sliders-h"></i> ประเมิน ESAS (Thai/Eng)</button>
-                   <div class="collapse mt-2" id="esasBox"><div id="esasContainer" class="p-1"></div></div>
-               </div>
+               <div class="col-12"><label class="small">Vitals</label><div class="input-group"><span class="input-group-text">BP</span><input type="text" class="form-control" id="vs_bp"><span class="input-group-text">PR</span><input type="number" class="form-control" id="vs_pr"><span class="input-group-text">RR</span><input type="number" class="form-control" id="vs_rr"><span class="input-group-text">O2</span><input type="number" class="form-control" id="vs_o2"><span class="input-group-text">T</span><input type="number" class="form-control" id="vs_bt" step="0.1" placeholder="37.0" onchange="if(this.value) this.value=parseFloat(this.value).toFixed(1);"></div></div>
+               <div class="col-12"><button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#esasBox"><i class="fas fa-sliders-h"></i> ประเมิน ESAS (Thai/Eng)</button><div class="collapse mt-2" id="esasBox"><div id="esasContainer" class="p-1"></div></div></div>
             </div>
             
             <div class="mb-3"><label class="small">Nursing Plan</label><textarea class="form-control" id="nursing_plan" rows="2"></textarea></div>
             
             <div class="mb-4 table-responsive bg-white p-3 rounded shadow-sm border">
                <div class="mb-3 border-bottom pb-3">
-                  <label class="small fw-bold text-success"><i class="fas fa-file-contract"></i> Living Will</label>
-                  <div class="d-flex align-items-center mt-2 flex-wrap gap-2">
-                     <div class="form-check"><input class="form-check-input" type="radio" name="lw_status" value="Made" id="lw_made"><label class="form-check-label" for="lw_made">ทำแล้ว</label></div>
-                     <div class="form-check"><input class="form-check-input" type="radio" name="lw_status" value="NotMade" id="lw_not" checked><label class="form-check-label" for="lw_not">ยังไม่ทำ</label></div>
-                     <div class="input-group thai-datepicker w-auto ms-2" style="max-width: 180px;">
-                        <input type="text" class="form-control form-control-sm" id="lw_date" placeholder="วันที่ทำ" data-input onkeyup="formatDateInput(this)">
+                  <div class="d-flex align-items-center">
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="lw_checkbox" onchange="toggleLWDate()">
+                        <label class="form-check-label fw-bold text-success" for="lw_checkbox"><i class="fas fa-file-contract"></i> มี Living Will (หนังสือแสดงเจตนา)</label>
+                     </div>
+                     <div class="input-group thai-datepicker w-auto ms-3 d-none" id="lw_date_container" style="max-width: 180px;">
+                        <input type="text" class="form-control form-control-sm" id="lw_date" placeholder="วันที่ทำ (พ.ศ.)" data-input onkeyup="formatDateInput(this)">
                         <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
                      </div>
                   </div>
                </div>
 
                <div class="d-flex justify-content-between align-items-center mb-2"><label class="small fw-bold">Advance Care Plan</label>
-                  <div class="d-flex gap-2">
-                      <input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP">
-                      <div class="input-group thai-datepicker w-auto" style="min-width: 150px;">
-                          <input type="text" class="form-control form-control-sm" id="acp_date" placeholder="วันที่" data-input onkeyup="formatDateInput(this)">
-                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
-                      </div>
-                  </div>
+                  <div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP"><div class="input-group thai-datepicker w-auto" style="min-width: 150px;"><input type="text" class="form-control form-control-sm" id="acp_date" placeholder="วันที่" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div></div>
                </div>
                <table class="table table-bordered table-sm bg-white" style="font-size:0.85rem"><thead class="table-light"><tr><th>Topic</th><th class="text-center">Want</th><th class="text-center">Don't</th><th class="text-center">Undecided</th></tr></thead><tbody id="acpTableBody"></tbody></table>
             </div>
             
             <div class="bg-soft-green p-3 rounded mb-4">
                <div class="row g-3">
-                 <div class="col-6"><label class="small">นัดถัดไป</label>
-                    <div class="input-group thai-datepicker">
-                        <input type="text" class="form-control" id="next_visit_date" placeholder="วว/ดด/ปปปป" data-input onkeyup="formatDateInput(this)">
-                        <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
-                    </div>
-                 </div>
+                 <div class="col-6"><label class="small">นัดถัดไป</label><div class="input-group thai-datepicker"><input type="text" class="form-control" id="next_visit_date" placeholder="วว/ดด/ปปปป" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div></div>
                  <div class="col-6"><label class="small">ประเภทนัด</label><select class="form-select" id="next_visit_type"><option>OPD</option><option>HOME VISIT</option><option>TELEMED</option></select></div>
-                 
-                 <div class="col-12"><label class="small">Lab Values</label>
-                    <div class="input-group">
-                      <div class="input-group thai-datepicker" style="width: 140px; flex:none;">
-                          <input type="text" class="form-control" id="lab_date" placeholder="วันที่ Lab" data-input onkeyup="formatDateInput(this)">
-                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
-                      </div>
-                      <span class="input-group-text">Cr</span><input type="number" class="form-control" id="lab_cr" step="0.01" placeholder="xx.xx" oninput="validateLabInput(this, 'cr')" onchange="formatLabFinal(this)">
-                      <span class="input-group-text">eGFR</span><input type="number" class="form-control" id="lab_egfr" step="0.01" placeholder="xxx.xx" oninput="validateLabInput(this, 'egfr')" onchange="formatLabFinal(this)">
-                    </div>
-                 </div>
+                 <div class="col-12"><label class="small">Lab Values</label><div class="input-group"><div class="input-group thai-datepicker" style="width: 140px; flex:none;"><input type="text" class="form-control" id="lab_date" placeholder="วันที่ Lab" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div><span class="input-group-text">Cr</span><input type="number" class="form-control" id="lab_cr" step="0.01" placeholder="xx.xx" oninput="validateLabInput(this, 'cr')" onchange="formatLabFinal(this)"><span class="input-group-text">eGFR</span><input type="number" class="form-control" id="lab_egfr" step="0.01" placeholder="xxx.xx" oninput="validateLabInput(this, 'egfr')" onchange="formatLabFinal(this)"></div></div>
                  
                  <div class="col-12 pt-2 border-top">
                     <div class="d-flex flex-wrap align-items-center gap-3">
                        <div class="form-check"><input class="form-check-input" type="radio" name="pt_status" value="Alive" checked onclick="toggleDeathPlace()"> <label>Alive</label></div>
                        <div class="form-check"><input class="form-check-input" type="radio" name="pt_status" value="Death" onclick="toggleDeathPlace()"> <label class="text-danger">Death</label></div>
-                       <div id="deathPlaceContainer" class="d-none d-flex align-items-center gap-2">
+                       
+                       <div id="deathDetails" class="d-none d-flex flex-wrap align-items-center gap-2">
                           <select class="form-select form-select-sm" id="death_place" style="width: auto;">
                              <option value="">-- สถานที่เสียชีวิต --</option>
                              <option value="Home">บ้าน (Home)</option>
                              <option value="Hospital">โรงพยาบาล (Hospital)</option>
                              <option value="Other">อื่นๆ</option>
                           </select>
-                       </div>
-                       <div class="input-group thai-datepicker w-auto">
-                          <input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่จำหน่าย/ตาย" data-input onkeyup="formatDateInput(this)">
-                          <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                          
+                          <div class="form-check ms-2 border-start ps-3">
+                              <input class="form-check-input" type="checkbox" id="withdraw_et">
+                              <label class="form-check-label small text-danger fw-bold" for="withdraw_et">Withdraw ET-tube</label>
+                          </div>
+                          
+                          <div class="input-group thai-datepicker w-auto ms-2">
+                              <input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่เสียชีวิต/จำหน่าย" data-input onkeyup="formatDateInput(this)">
+                              <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                          </div>
                        </div>
                     </div>
                  </div>
@@ -242,11 +196,6 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
   <script src="main.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
-    let deferredPrompt; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; const btn = document.getElementById('installContainer'); if(btn) btn.classList.remove('d-none'); });
-    function installPWA() { if (!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') console.log('User accepted install'); deferredPrompt = null; document.getElementById('installContainer').classList.add('d-none'); }); }
-    window.addEventListener('appinstalled', () => { document.getElementById('installContainer').classList.add('d-none'); });
-  </script>
+  <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); } let deferredPrompt; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; const btn = document.getElementById('installContainer'); if(btn) btn.classList.remove('d-none'); }); function installPWA() { if (!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') console.log('User accepted install'); deferredPrompt = null; document.getElementById('installContainer').classList.add('d-none'); }); } window.addEventListener('appinstalled', () => { document.getElementById('installContainer').classList.add('d-none'); });</script>
 </body>
 </html>
