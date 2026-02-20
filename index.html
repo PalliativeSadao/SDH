@@ -67,8 +67,9 @@
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom p-2 rounded" id="formHeader">
              <h4 class="text-success mb-0 fw-bold" id="formTitle"><i class="fas fa-clipboard-check"></i> บันทึกข้อมูล</h4>
-             <div>
-                <button type="button" class="btn btn-outline-success shadow-sm me-2 d-none" id="linkMap"><i class="fas fa-map-marked-alt"></i> นำทาง</button>
+             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-danger shadow-sm d-none" id="btnDeletePatient" onclick="confirmDeletePatient()"><i class="fas fa-trash-alt"></i></button>
+                <button type="button" class="btn btn-outline-success shadow-sm d-none" id="linkMap"><i class="fas fa-map-marked-alt"></i></button>
                 <button type="button" class="btn btn-warning shadow-sm d-none" id="btnViewHistory" onclick="showHistoryModal()"><i class="fas fa-history"></i> ประวัติเดิม</button>
              </div>
           </div>
@@ -86,7 +87,7 @@
                 <div class="col-6 col-md-2"><label class="small">อายุ</label><input type="text" class="form-control bg-white" id="age_display" readonly placeholder="-" style="font-weight:bold; color:#2E8B57;"></div>
                 <div class="col-12 col-md-6"><label class="small">ประเภทรับ (ปัจจุบัน)</label><select class="form-select" id="admitType" onchange="updateEditHeader()"><option>IPD</option><option>OPD</option><option>HOME VISIT</option><option>TELEMED</option></select></div>
                 <div class="col-12"><label class="small">เบอร์ติดต่อ</label><div id="phoneContainer"></div><button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addPhoneField()">+ เพิ่มเบอร์</button></div>
-                <div class="col-12"><label class="small">ที่อยู่</label> <button type="button" class="btn btn-sm btn-info text-white ms-2" id="btnGeo" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> ปักหมุด</button><div class="input-group mt-2 mb-2"><input type="text" class="form-control" id="addr_house" placeholder="บ้านเลขที่"><input type="text" class="form-control" id="addr_moo" placeholder="หมู่"></div><input type="text" class="form-control mb-2" id="addr_road" placeholder="ถนน/ซอย"><div class="row g-2"><div class="col"><input type="text" class="form-control" id="addr_tumbon" placeholder="ตำบล"></div><div class="col"><input type="text" class="form-control" id="addr_amphoe" placeholder="อำเภอ"></div><div class="col"><input type="text" class="form-control" id="addr_province" placeholder="จังหวัด"></div></div><input type="hidden" id="lat"><input type="hidden" id="long"></div>
+                <div class="col-12"><label class="small">ที่อยู่</label> <button type="button" class="btn btn-sm btn-info text-white ms-2" id="btnGeo" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> ปักหมุดพิกัด</button><div class="input-group mt-2 mb-2"><input type="text" class="form-control" id="addr_house" placeholder="บ้านเลขที่"><input type="text" class="form-control" id="addr_moo" placeholder="หมู่"></div><input type="text" class="form-control mb-2" id="addr_road" placeholder="ถนน/ซอย"><div class="row g-2"><div class="col"><input type="text" class="form-control" id="addr_tumbon" placeholder="ตำบล"></div><div class="col"><input type="text" class="form-control" id="addr_amphoe" placeholder="อำเภอ"></div><div class="col"><input type="text" class="form-control" id="addr_province" placeholder="จังหวัด"></div></div><input type="hidden" id="lat"><input type="hidden" id="long"></div>
               </div>
             </div>
             
@@ -136,10 +137,7 @@
                      </div>
                   </div>
                </div>
-
-               <div class="d-flex justify-content-between align-items-center mb-2"><label class="small fw-bold">Advance Care Plan</label>
-                  <div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP"><div class="input-group thai-datepicker w-auto" style="min-width: 150px;"><input type="text" class="form-control form-control-sm" id="acp_date" placeholder="วันที่" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div></div>
-               </div>
+               <div class="d-flex justify-content-between align-items-center mb-2"><label class="small fw-bold">Advance Care Plan</label><div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" id="acp_maker" placeholder="ผู้ทำ ACP"><div class="input-group thai-datepicker w-auto" style="min-width: 150px;"><input type="text" class="form-control form-control-sm" id="acp_date" placeholder="วันที่" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div></div></div>
                <table class="table table-bordered table-sm bg-white" style="font-size:0.85rem"><thead class="table-light"><tr><th>Topic</th><th class="text-center">Want</th><th class="text-center">Don't</th><th class="text-center">Undecided</th></tr></thead><tbody id="acpTableBody"></tbody></table>
             </div>
             
@@ -153,24 +151,10 @@
                     <div class="d-flex flex-wrap align-items-center gap-3">
                        <div class="form-check"><input class="form-check-input" type="radio" name="pt_status" value="Alive" checked onclick="toggleDeathPlace()"> <label>Alive</label></div>
                        <div class="form-check"><input class="form-check-input" type="radio" name="pt_status" value="Death" onclick="toggleDeathPlace()"> <label class="text-danger">Death</label></div>
-                       
                        <div id="deathDetails" class="d-none d-flex flex-wrap align-items-center gap-2">
-                          <select class="form-select form-select-sm" id="death_place" style="width: auto;">
-                             <option value="">-- สถานที่เสียชีวิต --</option>
-                             <option value="Home">บ้าน (Home)</option>
-                             <option value="Hospital">โรงพยาบาล (Hospital)</option>
-                             <option value="Other">อื่นๆ</option>
-                          </select>
-                          
-                          <div class="form-check ms-2 border-start ps-3">
-                              <input class="form-check-input" type="checkbox" id="withdraw_et">
-                              <label class="form-check-label small text-danger fw-bold" for="withdraw_et">Withdraw ET-tube</label>
-                          </div>
-                          
-                          <div class="input-group thai-datepicker w-auto ms-2">
-                              <input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่เสียชีวิต/จำหน่าย" data-input onkeyup="formatDateInput(this)">
-                              <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
-                          </div>
+                          <select class="form-select form-select-sm" id="death_place" style="width: auto;"><option value="">-- สถานที่เสียชีวิต --</option><option value="Home">บ้าน (Home)</option><option value="Hospital">โรงพยาบาล (Hospital)</option><option value="Other">อื่นๆ</option></select>
+                          <div class="form-check ms-2 border-start ps-3"><input class="form-check-input" type="checkbox" id="withdraw_et"><label class="form-check-label small text-danger fw-bold" for="withdraw_et">Withdraw ET-tube</label></div>
+                          <div class="input-group thai-datepicker w-auto ms-2"><input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่เสียชีวิต/จำหน่าย" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div>
                        </div>
                     </div>
                  </div>
