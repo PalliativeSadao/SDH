@@ -1,7 +1,6 @@
 // *** URL Web App ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQIbm1vl8AmYxGe5qBV0erTS15WpLiO2VxEUt9OBqiInmsMH-pEW7GwVkNZy_plFVu/exec';
 
-// ... (Data Arrays: diseaseData, medList, acpTopics, esasTopics เหมือนเดิม) ...
 const diseaseData = {
   "Non-Cancer": {
     "Neurological Disease": ["Ischemic stroke", "Hemorrhagic stroke", "Parkinson", "Alzheimer’s disease", "Epilepsy", "อื่นๆ ระบุ"],
@@ -20,21 +19,19 @@ Object.keys(diseaseData["Non-Cancer"]).forEach(key => { diseaseData["Non-Cancer"
 diseaseData["Cancer"]["Primary"].sort((a, b) => a.localeCompare(b, 'th'));
 diseaseData["Cancer"]["Metastasis"].sort((a, b) => a.localeCompare(b, 'th'));
 
-const medList = [ "Atropine eye drop 1%", "Baclofen (5 mg)", "Celebrex", "Diazepam (2 mg)", "Diazepam (5 mg)", "Diclofenac (25 mg)", "Domperidone (10 mg)", "Etoricoxib", "Fentanyl inj (50 mcg/mL)", "Fentanyl patch (12 mcg/hr)", "Gabapentin (100 mg)", "Gabapentin (300 mg)", "Haloperidol", "Hyoscine Butylbromide (20 mg/mL)", "Kapanol (20)", "Lactulose", "Lorazepam (0.5 mg)", "Metoclopramide (10 mg)", "Midazolam (5 mg/mL)", "Morphine inj (10 mg/5 mL)", "Morphine IR (10 mg)", "Morphine syr (10 mg/5 mL)", "MST (10 mg)", "MST (30 mg)", "Naproxen (250 mg)", "Paracetamol (500 mg)", "Senna (มะขามแขก)", "Tramadol (50 mg)" ].sort((a, b) => a.localeCompare(b, 'th'));
+// เปลี่ยนชื่อยา Morphine 5mL -> 1mL
+const medList = [ "Atropine eye drop 1%", "Baclofen (5 mg)", "Celebrex", "Diazepam (2 mg)", "Diazepam (5 mg)", "Diclofenac (25 mg)", "Domperidone (10 mg)", "Etoricoxib", "Fentanyl inj (50 mcg/mL)", "Fentanyl patch (12 mcg/hr)", "Gabapentin (100 mg)", "Gabapentin (300 mg)", "Haloperidol", "Hyoscine Butylbromide (20 mg/mL)", "Kapanol (20)", "Lactulose", "Lorazepam (0.5 mg)", "Metoclopramide (10 mg)", "Midazolam (5 mg/mL)", "Morphine inj (10 mg/1 mL)", "Morphine IR (10 mg)", "Morphine syr (10 mg/5 mL)", "MST (10 mg)", "MST (30 mg)", "Naproxen (250 mg)", "Paracetamol (500 mg)", "Senna (มะขามแขก)", "Tramadol (50 mg)" ].sort((a, b) => a.localeCompare(b, 'th'));
 const acpTopics = ["ET tube", "CPR", "Inotrope", "Hemodialysis", "NG tube", "Morphine", "Home death", "Hospital death"];
 const esasTopics = ["Pain (ปวด)", "Fatigue (เหนื่อย)", "Nausea (คลื่นไส้)", "Depression (ซึมเศร้า)", "Anxiety (วิตกกังวล)", "Drowsiness (ง่วงซึม)", "Appetite (เบื่ออาหาร)", "Well-being (สบายกายใจ)", "Shortness of breath (เหนื่อยหอบ)"];
 
 let allPatients = [], currentPhones = [], currentDiseases = [], currentMeds = [];
-let editingPatient = null;
-let currentHistoryData = [];
+let editingPatient = null, currentHistoryData = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   renderPPS(); renderESAS(); renderACP(); renderMedOptions(); renderDiseaseType(); 
-  addPhoneField(); loadData(); showPage('menu');
-  initThaiDatepicker();
+  addPhoneField(); loadData(); showPage('menu'); initThaiDatepicker();
 });
 
-// ... Datepicker & Utils ...
 function initThaiDatepicker() {
   flatpickr(".thai-datepicker", {
     wrap: true, allowInput: true, locale: "th", dateFormat: "d/m/Y", disableMobile: "true",
@@ -44,39 +41,32 @@ function initThaiDatepicker() {
     parseDate: (d) => { if(!d) return null; const p=d.split('/'); return p.length===3 ? new Date(`${p[2]-543}-${p[1]}-${p[0]}`) : new Date(); }
   });
 }
+
 function loadData() { fetch(SCRIPT_URL + '?op=getAll').then(r=>r.json()).then(d=>{ allPatients=d; renderActivePatients(); renderSummary(); }).catch(e=>console.error(e)); }
 function formatDateInput(i) { let v=i.value.replace(/\D/g,'').slice(0,8); if(v.length>=5) i.value=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) i.value=`${v.slice(0,2)}/${v.slice(2)}`; else i.value=v; }
 function dateThToGregorian(s) { if(!s||s.length!==10) return ''; const p=s.split('/'); return `${p[2]-543}-${p[1]}-${p[0]}`; }
 function gregorianToDateTh(s) { if(!s) return ''; const d=new Date(s); if(isNaN(d)) return ''; return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()+543}`; }
 function calculateAge() { const d=document.getElementById('dob').value; if(!d||d.length!==10){document.getElementById('age_display').value='-';return;} const diff=Date.now()-new Date(dateThToGregorian(d)).getTime(); document.getElementById('age_display').value = Math.abs(new Date(diff).getUTCFullYear()-1970)+" ปี"; }
 
-// Logic: Toggle Death Place & Withdraw Checkbox
 function toggleDeathPlace() {
     const status = document.querySelector('input[name="pt_status"]:checked').value;
     const container = document.getElementById('deathDetails');
     if (status === 'Death') container.classList.remove('d-none');
-    else { 
-        container.classList.add('d-none'); 
-        document.getElementById('death_place').value = ''; 
-        document.getElementById('withdraw_et').checked = false; 
-    }
+    else { container.classList.add('d-none'); document.getElementById('death_place').value = ''; document.getElementById('withdraw_et').checked = false; }
 }
-
-// Logic: Toggle Living Will Date
 function toggleLWDate() {
     const isChecked = document.getElementById('lw_checkbox').checked;
     const dateContainer = document.getElementById('lw_date_container');
     if(isChecked) dateContainer.classList.remove('d-none');
     else { dateContainer.classList.add('d-none'); document.getElementById('lw_date').value = ''; }
 }
-
 function updateEditHeader() {
     if(!editingPatient) return;
     document.getElementById('editInfoName').innerText = document.getElementById('fullname').value;
     document.getElementById('editInfoCurrentType').innerText = "Now: " + document.getElementById('admitType').value;
 }
 
-// --- Submit ---
+// --- การบันทึก ---
 function handleFormSubmit(e) {
   e.preventDefault();
   const hnVal = document.getElementById('hn').value;
@@ -91,29 +81,21 @@ function handleFormSubmit(e) {
   acp['maker'] = document.getElementById('acp_maker').value;
   acp['date'] = dateThToGregorian(document.getElementById('acp_date').value); 
   
-  // Living Will (Logic ใหม่)
   const hasLW = document.getElementById('lw_checkbox').checked;
-  const livingWill = { 
-      status: hasLW ? 'Made' : 'NotMade', 
-      date: hasLW ? dateThToGregorian(document.getElementById('lw_date').value) : '' 
-  };
+  const livingWill = { status: hasLW ? 'Made' : 'NotMade', date: hasLW ? dateThToGregorian(document.getElementById('lw_date').value) : '' };
 
   const formData = {
     isHistoryEdit: isHistoryEdit, originalTimestamp: editTimestamp,
     hn: hnVal, name: document.getElementById('fullname').value, gender: document.getElementById('gender').value,
     dob: dateThToGregorian(document.getElementById('dob').value), admitType: document.getElementById('admitType').value,
     phones: phones,
-    address: { 
-      house:document.getElementById('addr_house').value, moo:document.getElementById('addr_moo').value, 
-      sub:document.getElementById('addr_tumbon').value, dist:document.getElementById('addr_amphoe').value, 
-      prov:document.getElementById('addr_province').value, lat:document.getElementById('lat').value, long:document.getElementById('long').value 
-    },
+    
+    // แยก Address กับ GPS ตาม Sheet ใหม่
+    address: { house:document.getElementById('addr_house').value, moo:document.getElementById('addr_moo').value, road:document.getElementById('addr_road').value, sub:document.getElementById('addr_tumbon').value, dist:document.getElementById('addr_amphoe').value, prov:document.getElementById('addr_province').value },
+    gps: { lat:document.getElementById('lat').value, long:document.getElementById('long').value },
+    
     diseases: currentDiseases, meds: currentMeds, livingWill: livingWill,
-    exam: { 
-      pps:document.getElementById('pps_score').value, gcs:document.getElementById('gcs_score').value, 
-      vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) }, 
-      esas:esas 
-    },
+    exam: { pps:document.getElementById('pps_score').value, gcs:document.getElementById('gcs_score').value, vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) }, esas:esas },
     plan: document.getElementById('nursing_plan').value, acp: acp,
     nextVisitDate: dateThToGregorian(document.getElementById('next_visit_date').value),
     nextVisitType: document.getElementById('next_visit_type').value,
@@ -121,31 +103,46 @@ function handleFormSubmit(e) {
     status: document.querySelector('input[name="pt_status"]:checked').value,
     dischargeDate: dateThToGregorian(document.getElementById('discharge_date').value),
     deathPlace: document.getElementById('death_place').value,
-    withdrawET: document.getElementById('withdraw_et').checked ? 'Yes' : 'No' // เก็บค่า Withdraw
+    withdrawET: document.getElementById('withdraw_et').checked ? 'Yes' : 'No'
   };
 
-  Swal.fire({
-      title: isHistoryEdit ? 'แก้ไขประวัติ?' : 'บันทึก?', 
-      icon: 'warning', showCancelButton: true, confirmButtonText: 'ตกลง'
-  }).then((r) => {
+  Swal.fire({ title: isHistoryEdit ? 'แก้ไขประวัติ?' : 'บันทึก?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ตกลง' }).then((r) => {
       if (r.isConfirmed) {
           Swal.fire({title:'Saving...', didOpen:()=>Swal.showLoading()});
           fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(formData) }).then(r=>r.json()).then(res=>{
-             if(res.success){ 
-               Swal.fire({title:'Success', icon:'success', timer:1500, showConfirmButton:false});
-               resetForm(); loadData(); showPage('menu');
-             } else Swal.fire('Error',res.message,'error');
+             if(res.success){ Swal.fire({title:'Success', icon:'success', timer:1500, showConfirmButton:false}); resetForm(); loadData(); showPage('menu'); } 
+             else Swal.fire('Error',res.message,'error');
           });
       }
   });
 }
 
-// ... Open/Edit Functions ...
+// --- ฟังก์ชันลบผู้ป่วย (ใหม่) ---
+function confirmDeletePatient() {
+    const hn = document.getElementById('hn').value;
+    if (!hn) return;
+    
+    Swal.fire({
+        title: 'ยืนยันการลบผู้ป่วย?', text: `ต้องการลบข้อมูล HN: ${hn} ใช่หรือไม่? (ลบถาวร)`, icon: 'error',
+        showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({title:'กำลังลบ...', didOpen:()=>Swal.showLoading()});
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', hn: hn }) })
+            .then(r => r.json()).then(res => {
+                if(res.success) { Swal.fire({title:'ลบสำเร็จ', icon:'success', timer:1500, showConfirmButton:false}); resetForm(); loadData(); showPage('menu'); } 
+                else { Swal.fire('Error', res.message, 'error'); }
+            });
+        }
+    });
+}
+
 function openNewRegistration() {
   resetForm(); editingPatient = null;
   document.getElementById('editInfoBar').classList.add('d-none');
   document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus"></i> ลงทะเบียนรายใหม่';
   document.getElementById('btnViewHistory').classList.add('d-none');
+  document.getElementById('btnDeletePatient').classList.add('d-none'); // ซ่อนปุ่มลบ
   document.getElementById('hn').readOnly = false;
   showPage('register');
 }
@@ -161,33 +158,32 @@ function openEditRegistration(hn) {
   document.getElementById('editInfoCurrentType').innerText = "Now: " + (p.visit_type || 'OPD');
   document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> แก้ไขข้อมูล`;
   document.getElementById('btnViewHistory').classList.remove('d-none');
+  document.getElementById('btnDeletePatient').classList.remove('d-none'); // โชว์ปุ่มลบ
   
   const linkMap = document.getElementById('linkMap');
-  if(p.address && p.address.lat) { linkMap.classList.remove('d-none'); linkMap.onclick = () => window.open(`http://maps.google.com/?q=${p.address.lat},${p.address.long}`, '_blank'); updateMapBtnStatus(true); }
+  if(p.gps && p.gps.lat) { linkMap.classList.remove('d-none'); linkMap.onclick = () => window.open(`http://maps.google.com/?q=$${p.gps.lat},${p.gps.long}`, '_blank'); updateMapBtnStatus(true); }
   
   document.getElementById('hn').value = p.hn; document.getElementById('hn').readOnly = true;
   document.getElementById('fullname').value = p.name; document.getElementById('gender').value = p.gender;
   document.getElementById('dob').value = gregorianToDateTh(p.dob); calculateAge();
   document.getElementById('admitType').value = p.type_admit; 
+  
   if(p.address) {
-     ['house','moo','tumbon','amphoe','province','lat','long'].forEach(k=>{
+     ['house','moo','road','tumbon','amphoe','province'].forEach(k=>{
         const key = (k==='tumbon')?'sub':(k==='amphoe')?'dist':(k==='province')?'prov':k;
         if(document.getElementById('addr_'+k)) document.getElementById('addr_'+k).value = p.address[key]||'';
-        else document.getElementById(k).value = p.address[key]||'';
      });
   }
-  document.getElementById('phoneContainer').innerHTML=''; (p.phones||[]).forEach(ph=>addPhoneField(ph.number, ph.label)); if(!(p.phones||[]).length) addPhoneField();
-  currentDiseases = p.diseases||[]; renderDiseaseBadges();
-  currentMeds = p.meds||[]; renderMedsList();
+  if(p.gps) { document.getElementById('lat').value = p.gps.lat || ''; document.getElementById('long').value = p.gps.long || ''; }
   
-  // Living Will (Checkbox Logic)
+  document.getElementById('phoneContainer').innerHTML=''; (p.phones||[]).forEach(ph=>addPhoneField(ph.number, ph.label)); if(!(p.phones||[]).length) addPhoneField();
+  currentDiseases = p.diseases||[]; renderDiseaseBadges(); currentMeds = p.meds||[]; renderMedsList();
+  
   if(p.livingWill) {
       const isMade = p.livingWill.status === 'Made';
-      document.getElementById('lw_checkbox').checked = isMade;
-      toggleLWDate();
+      document.getElementById('lw_checkbox').checked = isMade; toggleLWDate();
       if(isMade) document.getElementById('lw_date').value = gregorianToDateTh(p.livingWill.date);
   }
-
   if(p.acp) {
     Object.keys(p.acp).forEach(k=>{ 
       if(k === 'maker') document.getElementById('acp_maker').value = p.acp[k];
@@ -198,7 +194,6 @@ function openEditRegistration(hn) {
   
   document.getElementsByName('pt_status').forEach(el=>{ if(el.value===p.status) el.checked=true; });
   if(p.status === 'Death') {
-      // Toggle Death & Populate
       toggleDeathPlace(); 
       document.getElementById('death_place').value = p.death_place || '';
       document.getElementById('withdraw_et').checked = (p.withdraw_et === 'Yes');
@@ -208,8 +203,7 @@ function openEditRegistration(hn) {
   document.getElementById('discharge_date').value = gregorianToDateTh(p.discharge_date);
   if(p.lab) document.getElementById('lab_date').value = gregorianToDateTh(p.lab.date);
 
-  showPage('register');
-  updateEditHeader();
+  showPage('register'); updateEditHeader();
 }
 
 function resetForm() {
@@ -223,25 +217,22 @@ function resetForm() {
   updateMapBtnStatus(false);
   document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
   document.querySelector('input[name="pt_status"][value="Alive"]').checked = true;
-  toggleLWDate(); // Reset LW
-  toggleDeathPlace(); 
+  toggleLWDate(); toggleDeathPlace(); 
   document.getElementById('age_display').value = '-';
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; }); renderESAS(); 
-  updateDiseaseUI();
-  document.querySelectorAll('.thai-datepicker').forEach(el => { if(el._flatpickr) el._flatpickr.clear(); });
+  updateDiseaseUI(); document.querySelectorAll('.thai-datepicker').forEach(el => { if(el._flatpickr) el._flatpickr.clear(); });
 }
 
 // ... History Functions ...
 function showHistoryModal() {
-  const hn = document.getElementById('hn').value;
-  const name = document.getElementById('fullname').value;
+  const hn = document.getElementById('hn').value; const name = document.getElementById('fullname').value;
   if(!hn) { Swal.fire('แจ้งเตือน', 'กรุณากรอก HN', 'warning'); return; }
   const modal = new bootstrap.Modal(document.getElementById('historyModal'));
   document.getElementById('historyPatientName').innerText = name;
   document.getElementById('historyLoading').classList.remove('d-none'); document.getElementById('historyContent').classList.add('d-none');
   modal.show();
   const lat=document.getElementById('lat').value, long=document.getElementById('long').value, btnMap=document.getElementById('btnMapHistory');
-  if(lat&&long) { btnMap.classList.remove('d-none'); btnMap.onclick=()=>window.open(`http://maps.google.com/?q=${lat},${long}`,'_blank'); } else { btnMap.classList.add('d-none'); }
+  if(lat&&long) { btnMap.classList.remove('d-none'); btnMap.onclick=()=>window.open(`http://maps.google.com/?q=$${lat},${long}`,'_blank'); } else { btnMap.classList.add('d-none'); }
   fetch(SCRIPT_URL + '?op=getHistory&hn=' + hn).then(r=>r.json()).then(d=>{ renderHistoryItems(d); document.getElementById('historyLoading').classList.add('d-none'); document.getElementById('historyContent').classList.remove('d-none'); });
 }
 
@@ -249,22 +240,14 @@ function renderHistoryItems(list) {
   currentHistoryData = list; const c = document.getElementById('historyContent');
   if(!list.length) { c.innerHTML='<div class="alert alert-warning">ไม่พบประวัติ</div>'; return; }
   c.innerHTML = list.map((h, index) => {
-     const d = formatDateTH(h.date);
-     const ppsDisplay = (h.pps!==''&&h.pps!==null&&h.pps!==undefined)?`${h.pps}%`:'ไม่ระบุ';
+     const d = formatDateTH(h.date); const ppsDisplay = (h.pps!==''&&h.pps!==null&&h.pps!==undefined)?`${h.pps}%`:'ไม่ระบุ';
      let labHtml = ''; if(h.lab_cr||h.lab_egfr) { const ld = h.lab_date ? `<br><span class="text-muted small">วันที่ Lab: ${formatDateTH(h.lab_date)}</span>` : ''; labHtml = `<div class="alert alert-light border p-2 mb-2 small"><i class="fas fa-flask text-danger"></i> <b>Lab:</b> Cr:${h.lab_cr||'-'} eGFR:${h.lab_egfr||'-'} ${ld}</div>`; }
      let medHtml = (h.meds && h.meds.length) ? '<ul class="mb-0 ps-3 small" style="list-style-type: circle;">' + h.meds.map(m => `<li class="mb-1"><span class="fw-bold text-dark">${m.name}</span> <span class="text-secondary ms-1">(${m.dose || '-'})</span></li>`).join('') + '</ul>' : '-';
-     
-     // LW Display
      let acpHtml = '';
      if(h.livingWill && h.livingWill.status === 'Made') { acpHtml += `<div class="mb-1 small text-success"><i class="fas fa-check-square"></i> <b>Living Will:</b> มี (${formatDateTH(h.livingWill.date)})</div>`; }
      else { acpHtml += `<div class="mb-1 small text-muted"><i class="far fa-square"></i> <b>Living Will:</b> ไม่มี</div>`; }
-     
      if(h.acp && (Object.keys(h.acp).length > 2 || h.acp.maker)) { acpHtml += `<div class="small bg-light p-2 rounded border mt-1"><i class="fas fa-file-signature"></i> <b>ACP:</b> มีข้อมูล</div>`; }
-     
-     // Withdraw ET Display
-     let deathHtml = '';
-     if(h.withdraw_et === 'Yes') { deathHtml = `<div class="mt-2 p-2 bg-danger-subtle text-danger border border-danger rounded small fw-bold"><i class="fas fa-procedures"></i> Withdraw ET-tube</div>`; }
-
+     let deathHtml = ''; if(h.withdraw_et === 'Yes') { deathHtml = `<div class="mt-2 p-2 bg-danger-subtle text-danger border border-danger rounded small fw-bold"><i class="fas fa-procedures"></i> Withdraw ET-tube</div>`; }
      let esasHtml = ''; if(h.esas) Object.entries(h.esas).forEach(([k,v])=>{if(v>0)esasHtml+=`<span class="badge bg-warning text-dark me-1 border">${k}:${v}</span>`;});
      const v = h.vitals||{};
      return `<div class="card mb-3 shadow-sm history-card"><div class="card-header bg-white d-flex justify-content-between align-items-center"><div><span class="history-date fw-bold">${d}</span> <span class="badge bg-light text-dark border ms-2">PPS: ${ppsDisplay}</span></div><button class="btn btn-sm btn-outline-warning" onclick="loadHistoryToEdit(${index})"><i class="fas fa-edit"></i> แก้ไข</button></div><div class="card-body">${labHtml}<div class="mb-2">${esasHtml}</div><div class="row"><div class="col-6 border-end"><p class="mb-1 small"><b>Vitals:</b> BP:${v.bp||'-'} P:${v.pr||'-'} RR:${v.rr||'-'} O2:${v.o2||'-'} T:${v.bt||'-'}</p><p class="mb-1 small"><b>GCS:</b> ${h.gcs||'-'}</p><p class="mb-1 small"><b>Plan:</b> ${h.plan||'-'}</p></div><div class="col-6"><p class="mb-1 small fw-bold text-success">ยา:</p>${medHtml}</div><div class="col-12 mt-2 border-top pt-2">${acpHtml}${deathHtml}</div></div></div>`;
@@ -281,10 +264,7 @@ function loadHistoryToEdit(index) {
     document.getElementById('formHeader').classList.replace('bg-light', 'bg-warning-subtle');
     
     document.getElementById('admitType').value = h.type || 'OPD';
-    if(h.vitals) {
-        document.getElementById('vs_bp').value = h.vitals.bp || ''; document.getElementById('vs_pr').value = h.vitals.pr || '';
-        document.getElementById('vs_rr').value = h.vitals.rr || ''; document.getElementById('vs_o2').value = h.vitals.o2 || ''; document.getElementById('vs_bt').value = h.vitals.bt || '';
-    }
+    if(h.vitals) { document.getElementById('vs_bp').value = h.vitals.bp || ''; document.getElementById('vs_pr').value = h.vitals.pr || ''; document.getElementById('vs_rr').value = h.vitals.rr || ''; document.getElementById('vs_o2').value = h.vitals.o2 || ''; document.getElementById('vs_bt').value = h.vitals.bt || ''; }
     document.getElementById('gcs_score').value = h.gcs || ''; document.getElementById('pps_score').value = h.pps || '0'; document.getElementById('nursing_plan').value = h.plan || '';
     currentMeds = h.meds || []; renderMedsList();
     if(h.esas) { Object.entries(h.esas).forEach(([topic, val]) => { const el = document.querySelector(`.esas-range[data-topic="${topic}"]`); if(el) { el.value = val; updateESASScore(el, esasTopics.indexOf(topic)); } }); }
@@ -296,22 +276,13 @@ function loadHistoryToEdit(index) {
         if(isMade) document.getElementById('lw_date').value = gregorianToDateTh(h.livingWill.date);
     }
     if(h.acp) { Object.keys(h.acp).forEach(k=>{ if(k === 'maker') document.getElementById('acp_maker').value = h.acp[k]; else if(k === 'date') document.getElementById('acp_date').value = gregorianToDateTh(h.acp[k]); else { const r=document.getElementsByName('acp_'+k); r.forEach(el=>{ if(el.value===h.acp[k]) el.checked=true; }); } }); }
-    
-    if(h.withdraw_et === 'Yes') {
-        // ต้องเลือก Death ก่อนถึงจะโชว์
-        const deathRadio = document.querySelector('input[name="pt_status"][value="Death"]');
-        deathRadio.checked = true;
-        toggleDeathPlace(); // Show details
-        document.getElementById('withdraw_et').checked = true;
-    }
-
-    showPage('register');
-    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'กำลังแก้ไขประวัติย้อนหลัง', showConfirmButton: false, timer: 3000 });
+    if(h.withdraw_et === 'Yes') { const deathRadio = document.querySelector('input[name="pt_status"][value="Death"]'); deathRadio.checked = true; toggleDeathPlace(); document.getElementById('withdraw_et').checked = true; }
+    showPage('register'); Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'กำลังแก้ไขประวัติย้อนหลัง', showConfirmButton: false, timer: 3000 });
 }
 
 // ... Helpers ...
 function showPage(pid) { document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); document.getElementById('page-'+pid).classList.remove('d-none'); document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); const links = document.querySelectorAll('.nav-link'); links.forEach(l => { if(l.getAttribute('onclick').includes(`'${pid}'`)) l.classList.add('active'); }); if(pid==='appoint') initSlider(); }
-function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดปัจจุบัน';} }
+function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดพิกัด';} }
 function getLocation() { if(navigator.geolocation){ Swal.fire({title:'กำลังระบุพิกัด...',didOpen:()=>Swal.showLoading()}); navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('lat').value=p.coords.latitude; document.getElementById('long').value=p.coords.longitude; updateMapBtnStatus(true); Swal.fire({icon:'success', title:'บันทึกพิกัดสำเร็จ', text:`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`, timer:1500, showConfirmButton:false}); }, err=>{ Swal.fire('Error','ไม่สามารถระบุตำแหน่งได้','error'); }); } else { Swal.fire('Error','Browser ไม่รองรับ GPS','error'); } }
 function addPhoneField(v='',l=''){ const d=document.createElement('div'); d.className='input-group mb-2'; d.innerHTML=`<input type="tel" class="form-control phone-input" placeholder="เบอร์โทร" value="${v}" maxlength="10"><select class="form-select" style="max-width:130px"><option value="">ความสัมพันธ์</option><option value="คนไข้" ${l==='คนไข้'?'selected':''}>คนไข้</option><option value="คู่สมรส" ${l==='คู่สมรส'?'selected':''}>คู่สมรส</option><option value="พ่อ" ${l==='พ่อ'?'selected':''}>พ่อ</option><option value="แม่" ${l==='แม่'?'selected':''}>แม่</option><option value="ลูก" ${l==='ลูก'?'selected':''}>ลูก</option><option value="ผู้ดูแล" ${l==='ผู้ดูแล'?'selected':''}>ผู้ดูแล</option><option value="ญาติ" ${l==='ญาติ'?'selected':''}>ญาติ</option></select><button class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>`; document.getElementById('phoneContainer').appendChild(d); }
 function validateLabInput(el, type) { if (el.value === '') return; const val = parseFloat(el.value); if (type === 'cr' && val >= 100) el.value = el.value.slice(0, -1); if (type === 'egfr' && val >= 1000) el.value = el.value.slice(0, -1); }
