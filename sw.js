@@ -1,4 +1,4 @@
-const CACHE_NAME = 'palliative-care-v2'; // อัปเดตเป็น v2
+const CACHE_NAME = 'palliative-care-v3'; // อัปเดตเป็น v3
 const ASSETS = [
   './',
   './index.html',
