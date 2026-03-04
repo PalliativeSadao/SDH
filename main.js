@@ -11,7 +11,7 @@ const diseaseData = {
     "Multiple Trauma Patient": [], "Pediatric": [], "Aging/Dementia": []
   },
   "Cancer": {
-    "Primary": ["Brain", "Nasopharynx", "Tongue", "Lung", "Breast", "Stomach", "Colon", "Liver", "Cholangiocarcinoma", "Squamous cell carcinoma", "Cervix", "Endometrium", "Uterus", "Kidney", "Prostate", "Gall bladder", "Urinary bladder", "Pancreas", "Bone", "Lymphoma", "Leukemia", "Multiple myeloma", "Peritonium", "Sarcoma", "Unknown primary"],
+    "Primary": ["Brain", "Nasopharynx", "Tongue", "Lung", "Breast", "Stomach", "Colon", "Liver", "Cholangiocarcinoma", "Squamous cell carcinoma", "Cervix", "Endometrium", "Uterus", "Kidney", "Prostate", "Gall bladder", "Urinary bladder", "Pancreas", "Bone", "Lymphoma", "Leukemia", "Multiple myeloma", "Peritonium", "Sarcoma", "Unknown primary", "Ovary"],
     "Metastasis": ["None", "Brain", "Lung", "Pleural", "Bone", "Lymph node", "Liver", "Peritoneal", "Skin", "อื่นๆ ระบุ"]
   }
 };
@@ -19,7 +19,6 @@ Object.keys(diseaseData["Non-Cancer"]).forEach(key => { diseaseData["Non-Cancer"
 diseaseData["Cancer"]["Primary"].sort((a, b) => a.localeCompare(b, 'th'));
 diseaseData["Cancer"]["Metastasis"].sort((a, b) => a.localeCompare(b, 'th'));
 
-// เปลี่ยนชื่อยา Morphine 5mL -> 1mL
 const medList = [ "Atropine eye drop 1%", "Baclofen (5 mg)", "Celebrex", "Diazepam (2 mg)", "Diazepam (5 mg)", "Diclofenac (25 mg)", "Domperidone (10 mg)", "Etoricoxib", "Fentanyl inj (50 mcg/mL)", "Fentanyl patch (12 mcg/hr)", "Gabapentin (100 mg)", "Gabapentin (300 mg)", "Haloperidol", "Hyoscine Butylbromide (20 mg/mL)", "Kapanol (20)", "Lactulose", "Lorazepam (0.5 mg)", "Metoclopramide (10 mg)", "Midazolam (5 mg/mL)", "Morphine inj (10 mg/1 mL)", "Morphine IR (10 mg)", "Morphine syr (10 mg/5 mL)", "MST (10 mg)", "MST (30 mg)", "Naproxen (250 mg)", "Paracetamol (500 mg)", "Senna (มะขามแขก)", "Tramadol (50 mg)" ].sort((a, b) => a.localeCompare(b, 'th'));
 const acpTopics = ["ET tube", "CPR", "Inotrope", "Hemodialysis", "NG tube", "Morphine", "Home death", "Hospital death"];
 const esasTopics = ["Pain (ปวด)", "Fatigue (เหนื่อย)", "Nausea (คลื่นไส้)", "Depression (ซึมเศร้า)", "Anxiety (วิตกกังวล)", "Drowsiness (ง่วงซึม)", "Appetite (เบื่ออาหาร)", "Well-being (สบายกายใจ)", "Shortness of breath (เหนื่อยหอบ)"];
@@ -51,22 +50,37 @@ function calculateAge() { const d=document.getElementById('dob').value; if(!d||d
 function toggleDeathPlace() {
     const status = document.querySelector('input[name="pt_status"]:checked').value;
     const container = document.getElementById('deathDetails');
-    if (status === 'Death') container.classList.remove('d-none');
-    else { container.classList.add('d-none'); document.getElementById('death_place').value = ''; document.getElementById('withdraw_et').checked = false; }
+    if (status === 'Death') {
+        container.classList.remove('d-none');
+    } else { 
+        container.classList.add('d-none'); 
+        document.getElementById('death_place').value = ''; 
+        document.getElementById('withdraw_et').checked = false; 
+        const dd = document.getElementById('discharge_date');
+        dd.value = '';
+        if(dd._flatpickr) dd._flatpickr.clear();
+    }
 }
+
+function revertToAlive() {
+    document.getElementById('status_alive').checked = true;
+    toggleDeathPlace(); 
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'เปลี่ยนสถานะเป็น คงพยาบาล (Alive)', showConfirmButton: false, timer: 2000 });
+}
+
 function toggleLWDate() {
     const isChecked = document.getElementById('lw_checkbox').checked;
     const dateContainer = document.getElementById('lw_date_container');
     if(isChecked) dateContainer.classList.remove('d-none');
     else { dateContainer.classList.add('d-none'); document.getElementById('lw_date').value = ''; }
 }
+
 function updateEditHeader() {
     if(!editingPatient) return;
     document.getElementById('editInfoName').innerText = document.getElementById('fullname').value;
     document.getElementById('editInfoCurrentType').innerText = "Now: " + document.getElementById('admitType').value;
 }
 
-// --- การบันทึก ---
 function handleFormSubmit(e) {
   e.preventDefault();
   const hnVal = document.getElementById('hn').value;
@@ -84,26 +98,26 @@ function handleFormSubmit(e) {
   const hasLW = document.getElementById('lw_checkbox').checked;
   const livingWill = { status: hasLW ? 'Made' : 'NotMade', date: hasLW ? dateThToGregorian(document.getElementById('lw_date').value) : '' };
 
+  const ptStatus = document.querySelector('input[name="pt_status"]:checked').value;
+
   const formData = {
     isHistoryEdit: isHistoryEdit, originalTimestamp: editTimestamp,
     hn: hnVal, name: document.getElementById('fullname').value, gender: document.getElementById('gender').value,
     dob: dateThToGregorian(document.getElementById('dob').value), admitType: document.getElementById('admitType').value,
     phones: phones,
-    
-    // แยก Address กับ GPS ตาม Sheet ใหม่
     address: { house:document.getElementById('addr_house').value, moo:document.getElementById('addr_moo').value, road:document.getElementById('addr_road').value, sub:document.getElementById('addr_tumbon').value, dist:document.getElementById('addr_amphoe').value, prov:document.getElementById('addr_province').value },
     gps: { lat:document.getElementById('lat').value, long:document.getElementById('long').value },
-    
     diseases: currentDiseases, meds: currentMeds, livingWill: livingWill,
     exam: { pps:document.getElementById('pps_score').value, gcs:document.getElementById('gcs_score').value, vitals:{ bp:document.getElementById('vs_bp').value, pr:document.getElementById('vs_pr').value, rr:document.getElementById('vs_rr').value, o2:document.getElementById('vs_o2').value, bt:parseFloat(document.getElementById('vs_bt').value || 0).toFixed(1) }, esas:esas },
     plan: document.getElementById('nursing_plan').value, acp: acp,
     nextVisitDate: dateThToGregorian(document.getElementById('next_visit_date').value),
     nextVisitType: document.getElementById('next_visit_type').value,
     lab: { cr:document.getElementById('lab_cr').value, egfr:document.getElementById('lab_egfr').value, date: dateThToGregorian(document.getElementById('lab_date').value) },
-    status: document.querySelector('input[name="pt_status"]:checked').value,
-    dischargeDate: dateThToGregorian(document.getElementById('discharge_date').value),
-    deathPlace: document.getElementById('death_place').value,
-    withdrawET: document.getElementById('withdraw_et').checked ? 'Yes' : 'No'
+    
+    status: ptStatus,
+    dischargeDate: ptStatus === 'Death' ? dateThToGregorian(document.getElementById('discharge_date').value) : '',
+    deathPlace: ptStatus === 'Death' ? document.getElementById('death_place').value : '',
+    withdrawET: (ptStatus === 'Death' && document.getElementById('withdraw_et').checked) ? 'Yes' : 'No'
   };
 
   Swal.fire({ title: isHistoryEdit ? 'แก้ไขประวัติ?' : 'บันทึก?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ตกลง' }).then((r) => {
@@ -117,11 +131,9 @@ function handleFormSubmit(e) {
   });
 }
 
-// --- ฟังก์ชันลบผู้ป่วย (ใหม่) ---
 function confirmDeletePatient() {
     const hn = document.getElementById('hn').value;
     if (!hn) return;
-    
     Swal.fire({
         title: 'ยืนยันการลบผู้ป่วย?', text: `ต้องการลบข้อมูล HN: ${hn} ใช่หรือไม่? (ลบถาวร)`, icon: 'error',
         showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก'
@@ -142,7 +154,7 @@ function openNewRegistration() {
   document.getElementById('editInfoBar').classList.add('d-none');
   document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus"></i> ลงทะเบียนรายใหม่';
   document.getElementById('btnViewHistory').classList.add('d-none');
-  document.getElementById('btnDeletePatient').classList.add('d-none'); // ซ่อนปุ่มลบ
+  document.getElementById('btnDeletePatient').classList.add('d-none'); 
   document.getElementById('hn').readOnly = false;
   showPage('register');
 }
@@ -158,7 +170,7 @@ function openEditRegistration(hn) {
   document.getElementById('editInfoCurrentType').innerText = "Now: " + (p.visit_type || 'OPD');
   document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> แก้ไขข้อมูล`;
   document.getElementById('btnViewHistory').classList.remove('d-none');
-  document.getElementById('btnDeletePatient').classList.remove('d-none'); // โชว์ปุ่มลบ
+  document.getElementById('btnDeletePatient').classList.remove('d-none'); 
   
   const linkMap = document.getElementById('linkMap');
   if(p.gps && p.gps.lat) { linkMap.classList.remove('d-none'); linkMap.onclick = () => window.open(`http://maps.google.com/?q=$${p.gps.lat},${p.gps.long}`, '_blank'); updateMapBtnStatus(true); }
@@ -215,15 +227,16 @@ function resetForm() {
   currentMeds=[]; currentDiseases=[]; renderMedsList(); renderDiseaseBadges();
   document.getElementById('phoneContainer').innerHTML=''; addPhoneField();
   updateMapBtnStatus(false);
-  document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
-  document.querySelector('input[name="pt_status"][value="Alive"]').checked = true;
+  document.getElementById('status_alive').checked = true;
+  document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => {
+      if(el.name !== 'pt_status') el.checked = false; 
+  });
   toggleLWDate(); toggleDeathPlace(); 
   document.getElementById('age_display').value = '-';
   document.querySelectorAll('.esas-range').forEach(el => { el.value = 0; }); renderESAS(); 
   updateDiseaseUI(); document.querySelectorAll('.thai-datepicker').forEach(el => { if(el._flatpickr) el._flatpickr.clear(); });
 }
 
-// ... History Functions ...
 function showHistoryModal() {
   const hn = document.getElementById('hn').value; const name = document.getElementById('fullname').value;
   if(!hn) { Swal.fire('แจ้งเตือน', 'กรุณากรอก HN', 'warning'); return; }
@@ -280,9 +293,8 @@ function loadHistoryToEdit(index) {
     showPage('register'); Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'กำลังแก้ไขประวัติย้อนหลัง', showConfirmButton: false, timer: 3000 });
 }
 
-// ... Helpers ...
 function showPage(pid) { document.querySelectorAll('.page-section').forEach(e=>e.classList.add('d-none')); document.getElementById('page-'+pid).classList.remove('d-none'); document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active')); const links = document.querySelectorAll('.nav-link'); links.forEach(l => { if(l.getAttribute('onclick').includes(`'${pid}'`)) l.classList.add('active'); }); if(pid==='appoint') initSlider(); }
-function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> บันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดพิกัด';} }
+function updateMapBtnStatus(has) { const b=document.getElementById('btnGeo'); if(has){b.className='btn btn-sm btn-success text-white ms-2'; b.innerHTML='<i class="fas fa-check-circle"></i> พิกัดถูกบันทึกแล้ว';}else{b.className='btn btn-sm btn-info text-white ms-2'; b.innerHTML='<i class="fas fa-map-marker-alt"></i> ปักหมุดพิกัด';} }
 function getLocation() { if(navigator.geolocation){ Swal.fire({title:'กำลังระบุพิกัด...',didOpen:()=>Swal.showLoading()}); navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('lat').value=p.coords.latitude; document.getElementById('long').value=p.coords.longitude; updateMapBtnStatus(true); Swal.fire({icon:'success', title:'บันทึกพิกัดสำเร็จ', text:`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`, timer:1500, showConfirmButton:false}); }, err=>{ Swal.fire('Error','ไม่สามารถระบุตำแหน่งได้','error'); }); } else { Swal.fire('Error','Browser ไม่รองรับ GPS','error'); } }
 function addPhoneField(v='',l=''){ const d=document.createElement('div'); d.className='input-group mb-2'; d.innerHTML=`<input type="tel" class="form-control phone-input" placeholder="เบอร์โทร" value="${v}" maxlength="10"><select class="form-select" style="max-width:130px"><option value="">ความสัมพันธ์</option><option value="คนไข้" ${l==='คนไข้'?'selected':''}>คนไข้</option><option value="คู่สมรส" ${l==='คู่สมรส'?'selected':''}>คู่สมรส</option><option value="พ่อ" ${l==='พ่อ'?'selected':''}>พ่อ</option><option value="แม่" ${l==='แม่'?'selected':''}>แม่</option><option value="ลูก" ${l==='ลูก'?'selected':''}>ลูก</option><option value="ผู้ดูแล" ${l==='ผู้ดูแล'?'selected':''}>ผู้ดูแล</option><option value="ญาติ" ${l==='ญาติ'?'selected':''}>ญาติ</option></select><button class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>`; document.getElementById('phoneContainer').appendChild(d); }
 function validateLabInput(el, type) { if (el.value === '') return; const val = parseFloat(el.value); if (type === 'cr' && val >= 100) el.value = el.value.slice(0, -1); if (type === 'egfr' && val >= 1000) el.value = el.value.slice(0, -1); }
