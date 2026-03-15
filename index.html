@@ -28,7 +28,7 @@
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center gap-2 mt-2 mt-lg-0">
-          <li class="nav-item d-none" id="installContainer"><button class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()"><i class="fas fa-download me-1"></i> ติดตั้งแอป</button></li>
+          <li class="nav-item d-none" id="installContainer"><button type="button" class="btn btn-sm rounded-pill px-3 fw-bold my-1" onclick="installPWA()"><i class="fas fa-download me-1"></i> ติดตั้งแอป</button></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('menu')"><i class="fas fa-home me-1"></i> หน้าหลัก</a></li>
           <li class="nav-item"><a class="nav-link" id="nav-reg" onclick="openNewRegistration()"><i class="fas fa-user-plus me-1"></i> ลงทะเบียน</a></li>
           <li class="nav-item"><a class="nav-link" onclick="showPage('active')"><i class="fas fa-procedures me-1"></i> คงพยาบาล</a></li>
@@ -48,10 +48,10 @@
          <p class="text-muted">โรงพยาบาลสะเดา อำเภอสะเดา จังหวัดสงขลา</p>
        </div>
        <div class="row g-4 justify-content-center">
-          <div class="col-6 col-md-3"><button class="menu-btn w-100" onclick="openNewRegistration()"><i class="fas fa-user-plus menu-icon text-success"></i><span>ลงทะเบียนรายใหม่</span></button></div>
-          <div class="col-6 col-md-3"><button class="menu-btn w-100" onclick="showPage('active')"><i class="fas fa-procedures menu-icon text-primary"></i><span>ผู้ป่วยคงพยาบาล</span></button></div>
-          <div class="col-6 col-md-3"><button class="menu-btn w-100" onclick="showPage('appoint')"><i class="fas fa-calendar-alt menu-icon text-warning"></i><span>ตารางนัดหมาย</span></button></div>
-          <div class="col-6 col-md-3"><button class="menu-btn w-100" onclick="showPage('summary')"><i class="fas fa-chart-pie menu-icon text-secondary"></i><span>สรุปรายงาน</span></button></div>
+          <div class="col-6 col-md-3"><button type="button" class="menu-btn w-100" onclick="openNewRegistration()"><i class="fas fa-user-plus menu-icon text-success"></i><span>ลงทะเบียนรายใหม่</span></button></div>
+          <div class="col-6 col-md-3"><button type="button" class="menu-btn w-100" onclick="showPage('active')"><i class="fas fa-procedures menu-icon text-primary"></i><span>ผู้ป่วยคงพยาบาล</span></button></div>
+          <div class="col-6 col-md-3"><button type="button" class="menu-btn w-100" onclick="showPage('appoint')"><i class="fas fa-calendar-alt menu-icon text-warning"></i><span>ตารางนัดหมาย</span></button></div>
+          <div class="col-6 col-md-3"><button type="button" class="menu-btn w-100" onclick="showPage('summary')"><i class="fas fa-chart-pie menu-icon text-secondary"></i><span>สรุปรายงาน</span></button></div>
        </div>
     </div>
 
@@ -155,12 +155,25 @@
                        
                        <div id="deathDetails" class="d-none w-100 bg-danger-subtle p-3 rounded mt-1 border border-danger">
                           <div class="d-flex flex-wrap align-items-center gap-2">
-                              <select class="form-select form-select-sm" id="death_place" style="width: auto;"><option value="">-- สถานที่เสียชีวิต --</option><option value="Home">บ้าน (Home)</option><option value="Hospital">โรงพยาบาล (Hospital)</option><option value="Other">อื่นๆ</option></select>
-                              <div class="form-check ms-2 border-start border-danger ps-3"><input class="form-check-input" type="checkbox" id="withdraw_et"><label class="form-check-label small text-danger fw-bold" for="withdraw_et">Withdraw ET-tube</label></div>
-                              <div class="input-group thai-datepicker w-auto ms-2"><input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่เสียชีวิต/จำหน่าย" data-input onkeyup="formatDateInput(this)"><span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span></div>
+                              <select class="form-select form-select-sm" id="death_place" style="width: auto;">
+                                 <option value="">-- สถานที่เสียชีวิต --</option>
+                                 <option value="Home">บ้าน (Home)</option>
+                                 <option value="Hospital">โรงพยาบาล (Hospital)</option>
+                                 <option value="Other">อื่นๆ</option>
+                              </select>
+                              <div class="form-check ms-2 border-start border-danger ps-3">
+                                  <input class="form-check-input" type="checkbox" id="withdraw_et">
+                                  <label class="form-check-label small text-danger fw-bold" for="withdraw_et">Withdraw ET-tube</label>
+                              </div>
+                              <div class="input-group thai-datepicker w-auto ms-2">
+                                  <input type="text" class="form-control form-control-sm" id="discharge_date" placeholder="วันที่เสียชีวิต/จำหน่าย" data-input onkeyup="formatDateInput(this)">
+                                  <span class="input-group-text bg-white" style="cursor:pointer;" data-toggle><i class="fas fa-calendar-alt"></i></span>
+                              </div>
                           </div>
                           <div class="mt-3 text-end border-top border-danger pt-2">
-                              <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="revertToAlive()"><i class="fas fa-heartbeat"></i> ยกเลิกการเสียชีวิต (เปลี่ยนเป็น Alive)</button>
+                              <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="revertToAlive()">
+                                  <i class="fas fa-heartbeat"></i> ยกเลิกการเสียชีวิต (เปลี่ยนเป็น Alive)
+                              </button>
                           </div>
                        </div>
                     </div>
